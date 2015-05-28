@@ -1,0 +1,156 @@
+{
+    "input": ["JDBCInput"],
+    "TestInput": {
+       "description": "TestInput",
+       "probemodule": { "module": "testprobe", "name" : "TestProbe" },
+       "output": ["stdoutOutput"],
+       "interval": 10,
+       "maxCycles": 5
+    },
+
+    "ExecInput": {
+       "description": "ExecInput",
+       "probemodule": { "module": "execprobe", "name" : "ExecProbe" },
+       "output": ["stdoutOutput"],
+       "command": "vmstat 5 5",
+       "interval": 10,
+       "maxCycles": 5
+    },
+
+    "TopInput": {
+       "description": "TopInput",
+       "probemodule": { "module": "linuxtopprobe", "name" : "LinuxTopProbe" },
+       "output": ["stdoutOutput"],
+       "interval": 10,
+       "maxCycles": 5
+    },
+
+    "LinuxNetstatSInput": {
+       "description": "LinuxNetstatSInput",
+       "probemodule": { "module": "netstats", "name" : "LinuxNetstatS" },
+       "output": ["stdoutOutput"],
+       "command": "netstat -s",
+       "arguments": ["2", "100"],
+       "maxCycles": 5
+    },
+
+    "LinuxNetstatNTCInput": {
+       "description": "LinuxNetstatNTCInput",
+       "probemodule": { "module": "netstatntc", "name" : "LinuxNetstatNTC" },
+       "output": ["stdoutOutput"],
+       "command": "netstat -ntc",
+       "arguments": ["2", "100"],
+       "maxCycles": 5
+    },
+
+    "JMXInput": {
+       "description": "Obtains JMX metrics from JVM instance, stores on elasticsearchJMXoutput",
+       "probemodule": { "module": "jmxprobe", "name" : "JMXProbe" },
+       "output": ["elasticsearchJMXoutput"],
+       "interval": 10,
+       "metrics": [
+         "java.lang:type=Memory/HeapMemoryUsage",
+         "java.lang:type=Runtime/Uptime"
+       ],
+       "operations": [
+         { "name": "java.lang:type=Threading/dumpAllThreads", "params": [ true, true ], "signatures": [ "boolean", "boolean" ] },
+         { "name": "java.lang:type=Threading/findMonitorDeadlockedThreads" },
+         { "name": "java.lang:type=Threading/findDeadlockedThreads" }
+       ],
+       "username":"veryuser",
+       "password":"manypassword",
+       "host":"suchhost",
+       "port":8000,
+       "maxCycles": 5,
+       "arrayElementsToRecord": true
+    },
+
+    "JDBCInput": {
+       "description": "Obtains results from queries performed through JDBC, stores on elasticsearchJDBCoutput",
+       "probemodule": { "module": "cooldbprobe", "name" : "DatabaseProbe" },
+       "output": ["elasticsearchJDBCoutput"],
+       "dbProperties": {
+          "fetchSize": 10000,
+          "suchproperty": 667
+        },
+       "storeCycleState": {
+          "enabled": true,
+          "filename": "sincedb.example.json"
+        },
+       "interval": 20,
+       "maxCycles": 10,
+       "url": "jdbc:mysql://suchhost:3306/INFORMATION_SCHEMA",
+       "driverClassName": "com.mysql.jdbc.Driver",
+       "username": "veryuser",
+       "password": "suchpassword",
+       "minIdle": "2",
+       "maxIdle": "2",
+       "maxAge": "86400",
+       "validationQuery": "SELECT 1",
+       "initSQL": "set global innodb_stats_on_metadata=0",
+       "sql": [
+         {
+           "statement": "select DATE_FORMAT(UTC_TIMESTAMP(),\"%Y-%m-%dT%T.%f\") as \"@timestamp\", p.* from processlist as p",
+           "parameter": []
+         },
+         {
+           "statement": "select DATE_FORMAT(UTC_TIMESTAMP(),\"%Y-%m-%dT%T.%f\") as \"@timestamp\", ? as numCycles, ? as start, ? as end, ? as laststart, ? as startdt, ? as enddt, ? as laststartdt, ? as qstart, ? as qend, ? as qlaststart, ? as qstartdt, ? as qenddt, ? as qlaststartdt, ? as qelapsed, ? as someparameter ",
+           "parameter": ["$cycle.numCycles", "$cycle.start", "$cycle.end", "$cycle.laststart", "$cycle.startdt", "$cycle.enddt", "$cycle.laststartdt", "$cycle.qstart", "$cycle.qend", "$cycle.qlaststart", "$cycle.qstartdt", "$cycle.qenddt", "$cycle.qlaststartdt", "$cycle.qelapsed", "$cycle.someparameter"],
+           "someparameter": "Value of some parameter"
+         }
+       ]
+    },
+
+    "elasticsearchJDBCoutput": {
+      "class": "elasticsearch",
+      "hosts": ["127.0.0.1:9300", "127.0.0.1:9300"],
+      "options": {
+        "client.transport.sniff": false,
+        "cluster.name": "fuckup",
+        "client.transport.ping_timeout": "5s",
+        "client.transport.nodes_sampler_interval": "5s",
+        "client.transport.ignore_cluster_name": false
+      },
+      "bulkActions": 1000,
+      "bulkSize": 107374182400,
+      "flushInterval": 5,
+      "concurrentRequests": 1,
+      "indexPrefix": "jdbc-index",
+      "indexSuffix": "@timestamp",
+      "type": "jdbc",
+      "index_settings": {
+        "index" : {
+          "analysis" : {
+            "analyzer" : {
+              "default" : {
+                "type" : "standard",
+                "filter": ["standard", "asciifolding","lowercase"]
+              },
+              "sortable": {
+                "tokenizer": "keyword",
+                "filter": ["lowercase"]
+              }
+            }
+          }
+        }
+      },
+      "type_mapping": {
+        "jdbc": { "properties" : { "@timestamp" : { "type" : "date" } } }
+      }
+    },
+
+    "elasticsearchJMXoutput": {
+      "class": "elasticsearch",
+      "cluster" : "fuckup",
+      "host" : "127.0.0.1",
+      "port" : 9300,
+      "bulkActions": 1000,
+      "bulkSize": 107374182400,
+      "flushInterval": 5,
+      "indexPrefix": "jmx-index"
+    },
+
+    "stdoutOutput": { "class": "stdout", "codec": "json_lines"},
+    "fileOutput": { "class": "file", "codec": "json_lines", "filename": "output.json" }
+}
+
