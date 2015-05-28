@@ -39,8 +39,8 @@ The data acquired cyclically from these input sources are sent to Elasticsearch,
 ![](https://github.com/filipealmeida/probespawner/blob/master/docs/probespawner.overview.png)
 Basically, for each input you have defined, probespawner will launch a (java) thread as illustrated in the concurrency manual of jython.  
 Each thread is an instance of a probe that performs:
-* Periodical acquisition of query results from a database and writes these to an Elasticsearch instance (using Elasticsearch’s JAVA api).
-* Periodical acquisition of JMX attributes from a JVM instance writing these to an index of your choice on your Elasticsearch cluster and to a file you designated.
+* Periodical acquisition of records from a database, writes these to an Elasticsearch cluster (using Elasticsearch’s JAVA api).
+* Periodical acquisition of JMX attributes from a JVM instance, outputs to an index of your choice on your Elasticsearch cluster and to a file on your filesystem.
 * Periodically executes any task you designed for your own probe and do whatever you want with the results, for instance, write them to STDOUT.
 
 # Dependencies
