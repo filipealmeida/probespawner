@@ -1,22 +1,23 @@
 
 # What’s probespawner
-Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster, file or STDOUT, but any can be added.
-Examples of parsers for “top”, “netstat -s”, “netstat -ntce”, command execution and what not have been packaged.
-It’s immature, and since other challenges are being pursued, it’s published for everyone to mature or serve as an example for whatever.
-It get's usefull sometimes when troubleshooting.
+Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster, file or STDOUT, but any can be added.  
+Examples of parsers for “top”, “netstat -s”, “netstat -ntce”, command execution and what not have been packaged.  
+It’s immature, and since other challenges are being pursued, it’s published for everyone to mature or serve as an example for whatever.  
+It get's usefull sometimes when troubleshooting.  
 
 # Why probespawner
-Policies forbidding running rivers and installing plugins in the elasticsearch nodes were instated.
-Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such feeder.
+Policies forbidding running rivers and installing plugins in the elasticsearch nodes were instated.  
+Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such feeder.  
 Other work extended from there to support monitoring and performance statistics on the OSes.
 
 # How does probespawner work
-Probespawner reads a JSON configuration file stating a list of inputs and the outputs for each, much like [logstash](https://www.elastic.co/products/logstash).
-The inputs provided are either JMX (probing a JVM), JDBC (querying a database) or execution of programs in different platforms.
-Each is called a probe.
+
+Probespawner reads a JSON configuration file stating a list of inputs and the outputs for each, much like [logstash](https://www.elastic.co/products/logstash).  
+The inputs provided are either JMX (probing a JVM), JDBC (querying a database) or execution of programs in different platforms.  
+Each is called a probe.  
 The data acquired cyclically from these input sources are sent to Elasticsearch, stdout or file.
 
-Basically, for each input you have defined, probespawner will launch a (java) thread as illustrated in the concurrency manual of jython.
+Basically, for each input you have defined, probespawner will launch a (java) thread as illustrated in the concurrency manual of jython.  
 Each thread is an instance of a probe that performs:
 * Periodical acquisition of query results from a database and writes these to an Elasticsearch instance (using Elasticsearch’s JAVA api).
 * Periodical acquisition of JMX attributes from a JVM instance writing these to an index of your choice on your Elasticsearch cluster and to a file you designated.
@@ -66,12 +67,84 @@ The tarball contains the following files:
 16. **netstatntc.py** - Executes “netstat -ntce” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 
 # Configuring
-At the end you’ll find a working JSON file for your reference.
-Where omitted a description of a field it means it has no action.
+At the end you’ll find a working JSON file for your reference.  
+Where omitted a description of a field it means it has no action.  
 The list of possible fields for inputs and outputs is shown below:
 
 
 -- to be available, refer to the example.json file in the meantime --
+## Inputs (the probes)
+### Common fields
+Field | Description
+--- | --- 
+probemodule | Dictionary with “module” and “name” keys specifying the module and name to import as the probe for one input
+module | The jython module that contains the probe, e.g.: databaseprobe
+name | The name to import that will be used by probespawner to instantiate the thread, e.g.: DatabaseProbe
+output | List of outputs to write the acquired data, e.g.: [“elasticsearchJMXoutput”]. See “outputs” below
+interval |Interval in seconds to wait for the next iteration. The time spent in the execution of a cycle is subtracted to this value in every iteration
+maxCycles | How many cycles before exiting the thread
+storeCycleState | Stores parameters and information about cycles, like number of cycles, start and end times, etc. e.g.: "storeCycleState": { "enabled": true, "filename": "sincedb.json"}
+
+### JDBC specific
+There are two possible modules, “cooldbprobe”, “databaseprobe” and “zxdatabaseprobe”  
+First two use Tomcat’s JDBC connection pool.
+
+Field | Description
+--- | ---
+url | Connection URL, e.g.: jdbc:mysql://mysqlhost:3306/INFORMATION_SCHEMA
+driverClassName | The driver classname, must be in the CLASSPATH, e.g.: com.mysql.jdbc.Driver
+username | Username to connect to the database
+password | Password to connect to the database
+dbProperties | Property dictionary with JDBC driver specific properties. Overrides the database properties passed into the Driver.connect(String, Properties) method (see setDbProperties method from Tomcat’s connection pool)
+minIdle | See Tomcat’s connection pool documentation (number of minimum idle connections)
+maxIdle | See Tomcat’s connection pool documentation
+maxAge | See Tomcat’s connection pool documentation
+validationQuery | See Tomcat’s connection pool documentation (validation query, everytime a handle is obtained from the pool)
+initSQL | See Tomcat’s connection pool documentation (initial SQL when creating a connection)
+sql | List of query objects
+.. statement | The statement itself
+.. parameter | Parameters for the query, see “Statement parameters” table below
+.. id | Id for your query, useful for debugging
+.. parameter | Initial setup of the parameters, see “Statement parameters” table below
+
+#### Statement parameters
+Field | Description
+--- | --- 
+start | Unix timestamp in your script environment timezone at your cycle start (see python’s time.time() function), e.g.: 1427976119.921
+laststart | Unix timestamp of your previous cycle start
+end | Unix timestamp of the end of last cycle
+numCycles | Number of cycles started
+qstart | Unix timestamp of a given query start
+qlaststart | Unix timestamp of a the last time a given query started
+qend | Unix timestamp of a the last time a given query ended
+startdt | Same as start but a ISO8601 datetime, e.g.: “2015-04-02 12:00:00.000000”. Every parameter with suffix “dt” is a date in such format
+laststartdt | Same as laststart in ISO8601
+enddt | Same as end in ISO8601
+qstartdt | Same as qstart in ISO8601
+qlaststartdt | Same as qlaststart in ISO8601
+qenddt | Same as qend in ISO8601
+
+#### “cooldbprobe” module extra parameters for queries
+cooldbprobe packs a few extras and has some differences from the above:
+
+Field | Description
+--- | --- 
+start | Unix timestamp in milliseconds in your script environment timezone at your cycle start (see python’s time.time() function), e.g.: 1427976119921, the getTimeMillis() from JodaTime
+laststart | Unix timestamp in milliseconds of your previous cycle start
+end | Unix timestamp in milliseconds of the end of last cycle
+numCycles | Number of cycles started
+qstart | Unix timestamp in milliseconds of a given query start
+qlaststart | Unix timestamp in milliseconds of a the last time a given query started
+qend | Unix timestamp in milliseconds of a the last time a given query ended
+startdt | Same as start but a ISO8601 datetime, e.g.: “2014-11-22T12:13:03.991+05:00”. Every parameter with suffix “dt” is a date in such format
+laststartdt | Same as laststart in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
+enddt | Same as end in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
+qstartdt | Same as qstart in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
+qlaststartdt | Same as qlaststart in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
+qenddt | Same as qend in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
+qelapsed | Elapsed time in milliseconds from start of execution until resultset traversal and insert in the outputs
+*anyother* | If you specify in your input queries any other field you can get it as a parameter on your query, see the example below for “CoolProbeInput” 
+
 
 
 
