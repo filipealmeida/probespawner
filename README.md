@@ -67,12 +67,12 @@ The tarball contains the following files:
 16. **netstatntc.py** - Executes “netstat -ntce” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 
 # Configuring
-At the end you’ll find a working JSON file for your reference.  
+**Instead of reading this section** you can refer to the file **"example.json"** file in the repo/zip.
+There you'll find examples of most configurations.  
+
 Where omitted a description of a field it means it has no action.  
 The list of possible fields for inputs and outputs is shown below:
 
-
--- to be available, refer to the example.json file in the meantime --
 ## Inputs (the probes)
 ### Common fields
 Field | Description
@@ -145,8 +145,87 @@ qenddt | Same as qend in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
 qelapsed | Elapsed time in milliseconds from start of execution until resultset traversal and insert in the outputs
 *anyother* | If you specify in your input queries any other field you can get it as a parameter on your query, see the example below for “CoolProbeInput” 
 
+### JMX specific
+Field | Description
+--- | --- 
+host | JMX host
+port | JMX port
+username | Username for JMX connection
+password | Password for JMX connection
+attributes | List of metrics to obtain from JXM, e.g.: ["java.lang:type=Memory/HeapMemoryUsage", "java.lang:type=Runtime/Uptime"]
+operations | List of operations to execute via JMX, e.g: [{ "name": "java.lang:type=Threading/dumpAllThreads", "params": [ true, true ], "signatures": [ "boolean", "boolean" ] },  { "name": "java.lang:type=Threading/findDeadlockedThreads" } ]
+arrayElementsToRecord | Set this to true to expand an array if such is returned to your request 
 
+### ExecProbe specific
+Field | Description
+--- | --- 
+command | Set this to the command you want to execute every cycle
 
+### Top specific
+Field | Description
+--- | --- 
+command | Set this to change the “top -Hbi -n20 -d5 -w512” command that gets executed every cycle.
+
+### NetstatS specific
+Field | Description
+--- | --- 
+command | Set this to change the “netstat -s” command that gets executed every cycle.
+
+### NetstatNTC specific
+Field | Description
+--- | --- 
+command | Set this to change the “netstat -ntc” command that gets executed every cycle.
+
+## Outputs
+### Common fields
+Field | Description
+--- | --- 
+class | The class of your output, one of “elasticsearch”, “file” or “stdout”
+### Elasticsearch
+Field | Description
+--- | --- 
+cluster | A string with the clustername, defaults to “elasticsearch”
+hosts | List of hosts:ports, e.g.: [“10.0.0.1:9300”, “10.0.0.2:9300”] If host and port are also specified, it’ll be added to this list
+host | Hostname/IP of node (defaults to “localhost”)
+port | Port for transport, defaults to 9300
+options |Any options you want to add to the elasticsearch client configuration, e.g.: { "cluster.name": "fuckup", "client.transport.ping_timeout": "5s", "client.transport.nodes_sampler_interval": "5s", "client.transport.ignore_cluster_name": false, “client.transport.sniff": true,  } Overrides cluster name (“cluster”)
+indexPrefix | Index name prefix, defaults to “sampleindex”
+indexSuffix | Defaults to “-%Y.%m.%d” but can be a JDBC fieldname. If the fieldname parses as a ISO8601 date string it’ll use it’s info and suffix with “%Y.%m.%d”
+type | Document type, e.g.: “jdbc”
+indexSettings | Elasticsearch JSON for index settings
+typeMapping | Elasticsearch type mapping, e.g.: "jdbc": { "properties" : { "@timestamp" : { "type" : "date" } } }
+index_settings | Overrides indexSettings
+time_mapping | Overrides typeMapping
+bulkActions | Number of documents to keep before flushing data
+bulkSize | *ignored for the time being*
+flushInterval | *ignored for the time being*
+concurrentRequests | *ignored for the time being*
+actionRetryTimeout | Number of seconds to sleep before re-executing the elasticsearch action in progress
+concurrentRequests | *ignored for the time being*
+
+### STDOUT
+Field | Description
+--- | --- 
+codec | “json_lines”, no other available.
+
+### File
+Field | Description
+--- | --- 
+codec | “json_lines”, no other available.
+filename | The filename to write the information to in the format established by the codec.
+
+# Putting it all together
+Now you need to assemble a JSON file indicating which inputs are to be spawned, what probes are to be launched.
+Hence the “input” field.  
+This field indicates probespawner which inputs are to be processed by the probe threads.  
+
+Field | Description
+--- | --- 
+input | List of inputs to be launched by probespawner, e.g.: [“JMXInput”, “JDBCInput”]
+
+Refer to the file `example.json`.  
+There you will find an example with many combinations of the above options.  
+That should suffice for most everything you have in mind for recipes with probespawner.
 
 # Running probespawner
 
