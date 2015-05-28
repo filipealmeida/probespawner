@@ -36,7 +36,8 @@ Probespawner reads a JSON configuration file stating a list of inputs and the ou
 The inputs provided are either JMX (probing a JVM), JDBC (querying a database) or execution of programs in different platforms.  
 Each is called a probe.  
 The data acquired cyclically from these input sources are sent to Elasticsearch, stdout or file.
-![](https://github.com/filipealmeida/probespawner/blob/master/docs/probespawner.overview.png)
+![](https://github.com/filipealmeida/probespawner/blob/master/docs/probespawner.overview.png)  
+
 Basically, for each input you have defined, probespawner will launch a (java) thread as illustrated in the concurrency manual of jython.  
 Each thread is an instance of a probe that performs:
 * Periodical acquisition of records from a database, writes these to an Elasticsearch cluster (using Elasticsearch’s JAVA api).
