@@ -1,5 +1,6 @@
 {
-    "input": ["JDBCInput"],
+    "input": ["TestInput"],
+    
     "TestInput": {
        "description": "TestInput",
        "probemodule": { "module": "testprobe", "name" : "TestProbe" },
