@@ -1,3 +1,22 @@
+# Credit where it's due
+Please read the "Dependencies" chapter below.  
+Probespawner uses a number of great software and it depends directly on a number of them. 
+Links are provided for every of them.
+Some packages, namely jar files, are available here for convenience but you should upgrade them should you use this project.
+
+# Installing probespawner
+1. Download `java` (1.7+) - https://java.com/en/download/
+2. Install `java`
+3. Download Jython - http://www.jython.org/downloads.html
+4. Have `java` on your path (1.7+)
+5. Install Jython: `java -jar jython-installer-2.7.0.jar -s -d targetDirectory`
+6. Grab probespawner from github or download it from where's available.
+7. Expand the tarball/zip you’ve downloaded.
+8. Enter probespawner's directory
+9. Have `jython` on your path
+10. Run `./probespawner.sh <YOURCONFIG.json>` if in linux/mac or `probespawner.bat <YOURCONFIG.json>` if with windows
+
+[YOURCONFIG.json example here](https://github.com/filipealmeida/probespawner/blob/master/example.json)
 
 # What’s probespawner
 Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster, file or STDOUT, but any can be added.  
@@ -8,11 +27,12 @@ It get's usefull sometimes when troubleshooting.
 # Why probespawner
 Policies forbidding running rivers and installing plugins in the elasticsearch nodes were instated.  
 Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such feeder.  
-Other work extended from there to support monitoring and performance statistics on the OSes.
+Other work extended from there to support troubleshooting, monitoring and performance statistics on the OS and applications.  
+See the examples folder for some practical uses.
 
 # How does probespawner work
 
-Probespawner reads a JSON configuration file stating a list of inputs and the outputs for each, much like [logstash](https://www.elastic.co/products/logstash).  
+Probespawner reads a JSON configuration file stating a list of inputs and the outputs, much like [logstash](https://www.elastic.co/products/logstash).
 The inputs provided are either JMX (probing a JVM), JDBC (querying a database) or execution of programs in different platforms.  
 Each is called a probe.  
 The data acquired cyclically from these input sources are sent to Elasticsearch, stdout or file.
@@ -23,19 +43,16 @@ Each thread is an instance of a probe that performs:
 * Periodical acquisition of JMX attributes from a JVM instance writing these to an index of your choice on your Elasticsearch cluster and to a file you designated.
 * Periodically executes any task you designed for your own probe and do whatever you want with the results, for instance, write them to STDOUT.
 
-# Installing
-
-## Dependencies
-
+# Dependencies
 1. Jython 2.5.3+ - http://www.jython.org/downloads.html
 2. Jyson 1.0.2+ - http://opensource.xhaus.com/projects/jyson
 3. JodaTime 2.7+ - https://github.com/JodaOrg/joda-time
 
-### Optional but real useful
+## Optional but real useful
 1. Tomcat’s 7.0.9+ (connection pool classes) - http://tomcat.apache.org/download-70.cgi
 2. Elasticsearch 1.5.0+ - https://www.elastic.co/downloads
 
-### JDBC drivers you need for your queries, some common ones for your reference:
+## JDBC drivers you need for your queries, some common ones for your reference:
 1. Mysql - http://dev.mysql.com/downloads/connector/j/
 2. Oracle - http://www.oracle.com/technetwork/apps-tech/jdbc-112010-090769.html
 3. MSSQL - http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11774, http://go.microsoft.com/fwlink/?LinkId=245496
@@ -43,11 +60,9 @@ Each thread is an instance of a probe that performs:
 About the use of Tomcat’s connection pool, zxJDBC could’ve been used to attain the same objective.
 Since some code was around using it, so it stood.
 
-## Installing probespawner
-Just grab it from git hub or expand the tarball/zip you’ve downloaded.
-Inside you have the probespawner launchers (.sh or .bat) to start the program depending on your OS (Linux/Mac/Windows).
+# Probespawner package contents
 
-The tarball contains the following files:
+The package contains the following files:
 
 1. **dummyprobe.py** - Do not be mistaken judging by the name that this is a dummy probe. It’s been a poor choice of name but this is immature code so it’s staying like that. This is the class from which the other inherit and it’s the real skeleton for probes.
 2. **cooldbprobe.py** - Same as databaseprobe.py but uses JodaTime for time parameters, timestamp is in milliseconds, datetime strings are ISO8601 format looking like “2015-11-21T15:14:15.912+05:00”.
@@ -58,7 +73,7 @@ The tarball contains the following files:
 7. **probespawner.sh** - Launches probespawner with it’s argument as configuration.
 8. **probespawner.bat** - Launches probespawner with it’s argument as configuration in case you’re using Microsoft Windows.
 9. **testprobe.py** - The real dummy probe, it merely states that is a test and sends a sample dictionary to the outputs configured.
-10. **example.json** - Sample JSON configuration for a JDBC and JMX input
+10. **example.json** - Sample JSON configuration for a JDBC, a JMX input, any input. [Click here for contents](https://github.com/filipealmeida/probespawner/blob/master/example.json)
 11. **zxdatabaseprobe.py** - Same as databaseprobe.py but dispensing the use of Tomcat’s connection pool (uses zxJDBC)
 12. **databaseprobe.py** - Amazingly, this does not depend from “dummyprobe.py”, it was the initial code of a more monolitic probe that existed in the past. This probe executes any given query in a database and reports it’s results (if any) to the outputs configured in the JSON setup. It's here for legacy reasons, you should ignore this probe.
 13. **execprobe.py** - Executes “command” every cycle and reports it’s output
@@ -67,14 +82,15 @@ The tarball contains the following files:
 16. **netstatntc.py** - Executes “netstat -ntce” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 
 # Configuring
-**Instead of reading this section** you can refer to the file **"example.json"** file in the repo/zip.
+**Instead of reading this section** you can refer to the file [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json) file in the repo/zip.
 There you'll find examples of most configurations.  
 
 Where omitted a description of a field it means it has no action.  
 The list of possible fields for inputs and outputs is shown below:
 
 ## Inputs (the probes)
-### Common fields
+
+### Common fields for inputs
 Field | Description
 --- | --- 
 probemodule | Dictionary with “module” and “name” keys specifying the module and name to import as the probe for one input
@@ -85,7 +101,7 @@ interval |Interval in seconds to wait for the next iteration. The time spent in 
 maxCycles | How many cycles before exiting the thread
 storeCycleState | Stores parameters and information about cycles, like number of cycles, start and end times, etc. e.g.: "storeCycleState": { "enabled": true, "filename": "sincedb.json"}
 
-### JDBC specific
+### JDBC input specific parameters
 There are two possible modules, “cooldbprobe”, “databaseprobe” and “zxdatabaseprobe”  
 First two use Tomcat’s JDBC connection pool.
 
@@ -108,6 +124,7 @@ sql | List of query objects
 .. parameter | Initial setup of the parameters, see “Statement parameters” table below
 
 #### Statement parameters
+Parameters you can use for your prepared statements (`?` in the `statement` definition, see [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json)).
 Field | Description
 --- | --- 
 start | Unix timestamp in your script environment timezone at your cycle start (see python’s time.time() function), e.g.: 1427976119.921
@@ -124,7 +141,7 @@ qstartdt | Same as qstart in ISO8601
 qlaststartdt | Same as qlaststart in ISO8601
 qenddt | Same as qend in ISO8601
 
-#### “cooldbprobe” module extra parameters for queries
+#### “cooldbprobe” input extra parameters for queries
 cooldbprobe packs a few extras and has some differences from the above:
 
 Field | Description
@@ -145,7 +162,7 @@ qenddt | Same as qend in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
 qelapsed | Elapsed time in milliseconds from start of execution until resultset traversal and insert in the outputs
 *anyother* | If you specify in your input queries any other field you can get it as a parameter on your query, see the example below for “CoolProbeInput” 
 
-### JMX specific
+### JMX input specific parameters
 Field | Description
 --- | --- 
 host | JMX host
@@ -223,7 +240,7 @@ Field | Description
 --- | --- 
 input | List of inputs to be launched by probespawner, e.g.: [“JMXInput”, “JDBCInput”]
 
-Refer to the file `example.json`.  
+Refer to the file [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json).  
 There you will find an example with many combinations of the above options.  
 That should suffice for most everything you have in mind for recipes with probespawner.
 
