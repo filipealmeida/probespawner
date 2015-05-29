@@ -49,11 +49,28 @@ class RabbitMQ():
 			self.uri = self.config["uri"]
 		else:
 			self.uri = None
-		
+		if "networkRecoveryInterval" in self.config:
+			self.networkRecoveryInterval = self.config["networkRecoveryInterval"]
+		else:
+			self.networkRecoveryInterval = None
+		if "automaticRecoveryEnabled" in self.config:
+			self.automaticRecoveryEnabled = self.config["automaticRecoveryEnabled"]
+		else:
+			self.automaticRecoveryEnabled = None
+		if "topologyRecoveryEnabled" in self.config:
+			self.topologyRecoveryEnabled = self.config["topologyRecoveryEnabled"]
+		else:
+			self.topologyRecoveryEnabled = None
 		self.initialize();
 
 	def initialize(self):
 		self.factory = ConnectionFactory()
+		if self.networkRecoveryInterval != None:
+			self.factory.setNetworkRecoveryInterval(self.networkRecoveryInterval)
+		if self.automaticRecoveryEnabled != None:
+			self.factory.setAutomaticRecoveryEnabled(self.automaticRecoveryEnabled)
+		if self.topologyRecoveryEnabled != None:
+			self.factory.setTopologyRecoveryEnabled(self.topologyRecoveryEnabled)
 		if self.uri != None:
 			logger.info("Initializing RabbitMQ with uri: %s", self.uri)
 			self.factory.setUri(self.uri)

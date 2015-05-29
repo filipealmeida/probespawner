@@ -17,6 +17,9 @@
         "virtualhost": "vhost",
         "username": "myuser",
         "password": "mypassword",
-        "port": 5672
+        "port": 5672,
+        "networkRecoveryInterval": 10000,
+        "automaticRecoveryEnabled": false,
+        "topologyRecoveryEnabled": false
     }
 }
