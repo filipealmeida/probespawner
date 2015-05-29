@@ -122,6 +122,7 @@ class DatabaseProbe(DummyProbe):
             conn = PyConnection(self.datasource.getConnection())
             try:
                 with conn.cursor(1) as cursor:
+                    #TODO: review, index out of range very possible
                     if "parameter" in phrase:
                         logger.debug("Dude, got parameters!!")
                         for parameter in phrase["parameter"]:

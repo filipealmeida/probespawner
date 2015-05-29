@@ -1,3 +1,6 @@
+# Any copyright is dedicated to the Public Domain.
+# http://creativecommons.org/publicdomain/zero/1.0/
+
 from __future__ import with_statement
 import os.path
 import threading
@@ -13,13 +16,16 @@ from com.ziclix.python.sql import zxJDBC
 
 import org.joda.time.DateTime as DateTime
 import com.xhaus.jyson.JysonCodec as json
+import traceback
 #import org.apache.tomcat.jdbc.pool as dbpool
+
+#TODO: decouple this
 import org.elasticsearch.common.transport.InetSocketTransportAddress as InetSocketTransportAddress
 import org.elasticsearch.client.transport.TransportClient as TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings as ImmutableSettings
 import org.elasticsearch.client.transport.NoNodeAvailableException as NoNodeAvailableException
-import traceback
 from jelh import Elasticsearch
+from rmqlh import RabbitMQ
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +35,7 @@ class DummyProbe(Callable):
         self.output = output
         self.openfiles = {}
         self.elasticsearch = {}
+        self.rabbitmq = {}
         self.runtime = {}
         self.started = None
         self.completed = None
@@ -85,6 +92,26 @@ class DummyProbe(Callable):
         es.writeDocument(data, force)
         return True
 
+    def rabbitmqInitialize(self, output):
+        if output not in self.rabbitmq: #It's been initialized
+            configuration = self.output[output].copy()
+            rabbitmq = RabbitMQ(configuration)
+            self.rabbitmq[output] = rabbitmq
+        else:
+            logger.debug("Already initialized output %s", output)
+        return True
+
+    def rabbitmqWriteDocument(self, output, data, force):
+        rmq = self.rabbitmq[output]
+        rmq.writeDocument(data, force)
+        return True
+
+    def rabbitmqCleanup(self, output):
+        rmq = self.rabbitmq[output]
+        rmq.cleanup()
+        self.rabbitmq = {}
+        return True
+
     def startOutput(self):
         for output in self.output:
             outputType = self.output[output]["class"]
@@ -93,12 +120,16 @@ class DummyProbe(Callable):
                 self.openfiles[filename] = open(filename, 'ab')
             if outputType == "elasticsearch":
                 self.elasticsearchInitialize(output)
+            if outputType == "rabbitmq":
+                self.rabbitmqInitialize(output)
 
     def stopOutput(self):
         for output in self.output:
             outputType = self.output[output]["class"]
             if outputType == "elasticsearch":
                 self.elasticsearchWriteDocument(output, None, True)
+            if outputType == "rabbitmq":
+                self.rabbitmqWriteDocument(output, None, True)
             if outputType == "file":
                 filename = self.output[output]["filename"]
                 self.openfiles[filename].close()
@@ -110,6 +141,8 @@ class DummyProbe(Callable):
             #TODO: deal with ommited fields
             if outputType == "elasticsearch":
                 self.elasticsearchWriteDocument(output, data, False)
+            if outputType == "rabbitmq":
+                self.rabbitmqWriteDocument(output, json.dumps(data).encode('UTF-8'), False)
             if outputType == "stdout":
                 codec = self.output[output]["codec"]
                 if codec == "json_lines":
@@ -145,6 +178,10 @@ class DummyProbe(Callable):
 
     def cleanup(self):
         logger.info("Cleaning up after cycling")
+        for output in self.output:
+            outputType = self.output[output]["class"]
+            if outputType == "rabbitmq":
+                self.rabbitmqCleanup(output)
 
     def getCycleProperty(self, name):
         if name in self.cycle:
@@ -236,11 +273,10 @@ class DummyProbe(Callable):
                 logger.error(ex)
                 self.running = False
                 self.completed = time.time()
-                #raise
-            finally:
-                self.saveCycleState()
+            #TODO: remember finally
 
             self.finishCycle()
+            self.saveCycleState()
             sleepTime = self.interval - self.cycle["elapsed"] / 1000
             if "maxCycles" in self.input and self.cycle["numCycles"] >= self.input["maxCycles"]:
                 logger.info("Max cycles reached %d", self.cycle["numCycles"])

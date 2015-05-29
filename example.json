@@ -102,6 +102,17 @@
        ]
     },
 
+    "RabbitMQOutput": {
+        "class": "rabbitmq",
+        "uri": "amqp://perf:frep@suchhost:5672/foo",
+        "queue_name": "pbtest",
+        "host": "suchhost",
+        "virtualhost": "vhost",
+        "username": "perf",
+        "password": "frep",
+        "port": 5672
+    }
+
     "elasticsearchJDBCoutput": {
       "class": "elasticsearch",
       "hosts": ["127.0.0.1:9300", "127.0.0.1:9300"],
