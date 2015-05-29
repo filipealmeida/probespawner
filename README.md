@@ -126,8 +126,9 @@ sql | List of query objects
 
 #### Statement parameters
 Parameters you can use for your prepared statements (`?` in the `statement` definition, see [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json)).
+
 Field | Description
---- | --- 
+--- | ---
 start | Unix timestamp in your script environment timezone at your cycle start (see python’s time.time() function), e.g.: 1427976119.921
 laststart | Unix timestamp of your previous cycle start
 end | Unix timestamp of the end of last cycle
@@ -135,7 +136,7 @@ numCycles | Number of cycles started
 qstart | Unix timestamp of a given query start
 qlaststart | Unix timestamp of a the last time a given query started
 qend | Unix timestamp of a the last time a given query ended
-startdt | Same as start but a ISO8601 datetime, e.g.: “2015-04-02 12:00:00.000000”. Every parameter with suffix “dt” is a date in such format
+startdt | Same as start but a ISO8601 datetime, e.g.: “2015-04-02 12:00:00.000000”. Every parameter with suffix dt is a date in such format
 laststartdt | Same as laststart in ISO8601
 enddt | Same as end in ISO8601
 qstartdt | Same as qstart in ISO8601
