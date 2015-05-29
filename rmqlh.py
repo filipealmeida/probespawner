@@ -4,6 +4,7 @@
 import com.rabbitmq.client.ConnectionFactory as ConnectionFactory
 import com.rabbitmq.client.Connection as Connection
 import com.rabbitmq.client.Channel as Channel
+import com.rabbitmq.client.Address as Address
 
 import traceback
 
@@ -61,6 +62,13 @@ class RabbitMQ():
 			self.topologyRecoveryEnabled = self.config["topologyRecoveryEnabled"]
 		else:
 			self.topologyRecoveryEnabled = None
+
+		self.addresses = []
+		if "addresses" in self.config:
+			for address in self.config["addresses"]:
+				logger.info(address)
+				self.addresses.append(Address.parseAddress(address))
+
 		self.initialize();
 
 	def initialize(self):
@@ -74,17 +82,18 @@ class RabbitMQ():
 		if self.uri != None:
 			logger.info("Initializing RabbitMQ with uri: %s", self.uri)
 			self.factory.setUri(self.uri)
+			self.connection = self.factory.newConnection()
 		else:
-			logger.info("Initializing RabbitMQ for endpoint: %s:%d", self.host, self.port)
-			self.factory.setHost(self.host)
-			self.factory.setPort(self.port)
+			logger.info("Initializing RabbitMQ")
+			self.addresses.append(Address(self.host, self.port))
 			if (self.username != None):
 				self.factory.setUsername(self.username)
 			if (self.password != None):
 				self.factory.setPassword(self.password)
 			if (self.virtualhost != None):
 				self.factory.setVirtualHost(self.virtualhost)
-		self.connection = self.factory.newConnection()
+			self.connection = self.factory.newConnection(self.addresses)
+
 		self.channel = self.connection.createChannel()
 		self.channel.queueDeclare(self.queue_name, False, False, False, None)
 
