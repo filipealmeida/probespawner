@@ -1,0 +1,22 @@
+{
+    "input": ["TestInput"],
+    
+    "TestInput": {
+       "description": "TestInput",
+       "probemodule": { "module": "testprobe", "name" : "TestProbe" },
+       "output": ["TestOutput"],
+       "interval": 10,
+       "maxCycles": 5
+    },
+
+    "TestOutput": {
+        "class": "rabbitmq",
+        "uri": "amqp://myuser:mypassword@suchhost:5672/vhost",
+        "queue_name": "pbtest",
+        "host": "suchhost",
+        "virtualhost": "vhost",
+        "username": "myuser",
+        "password": "mypassword",
+        "port": 5672
+    }
+}
