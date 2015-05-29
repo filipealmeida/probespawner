@@ -19,7 +19,7 @@ Some packages, namely jar files, are available here for convenience but you shou
 [YOURCONFIG.json example here](https://github.com/filipealmeida/probespawner/blob/master/example.json)
 
 # What’s probespawner
-Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster, file or STDOUT, but any can be added.  
+Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster, RabbitMQ queue, file or STDOUT, but any can be added.  
 Examples of parsers for “top”, “netstat -s”, “netstat -ntce”, command execution and what not have been packaged.  
 It’s immature, and since other challenges are being pursued, it’s published for everyone to mature or serve as an example for whatever.  
 It get's usefull sometimes when troubleshooting.  
@@ -35,13 +35,14 @@ See the examples folder for some practical uses.
 Probespawner reads a JSON configuration file stating a list of inputs and the outputs, much like [logstash](https://www.elastic.co/products/logstash).
 The inputs provided are either JMX (probing a JVM), JDBC (querying a database) or execution of programs in different platforms.  
 Each is called a probe.  
-The data acquired cyclically from these input sources are sent to Elasticsearch, stdout or file.
+The data acquired cyclically from these input sources are sent to Elasticsearch, RabbitMQ, stdout or file.
 ![](https://github.com/filipealmeida/probespawner/blob/master/docs/probespawner.overview.png)  
 
 Basically, for each input you have defined, probespawner will launch a (java) thread as illustrated in the concurrency manual of jython.  
 Each thread is an instance of a probe that performs:
 * Periodical acquisition of records from a database, writes these to an Elasticsearch cluster (using Elasticsearch’s JAVA api).
 * Periodical acquisition of JMX attributes from a JVM instance, outputs to an index of your choice on your Elasticsearch cluster and to a file on your filesystem.
+* Periodical top command parse, sends data to a RabbitMQ queue
 * Periodically executes any task you designed for your own probe and do whatever you want with the results, for instance, write them to STDOUT.
 
 # Dependencies
@@ -52,6 +53,7 @@ Each thread is an instance of a probe that performs:
 ## Optional but real useful
 1. Tomcat’s 7.0.9+ (connection pool classes) - http://tomcat.apache.org/download-70.cgi
 2. Elasticsearch 1.5.0+ - https://www.elastic.co/downloads
+3. RabbitMQ 3.5.3+ - https://www.rabbitmq.com
 
 ## JDBC drivers you need for your queries, some common ones for your reference:
 1. Mysql - http://dev.mysql.com/downloads/connector/j/
@@ -81,6 +83,7 @@ The package contains the following files:
 14. **linuxtopprobe.py** - Executes top command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion
 15. **netstats.py** - Executes “netstat -s” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 16. **netstatntc.py** - Executes “netstat -ntce” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
+17. **rmqlh.py** - Jython’s RabbitMQ Little Helper, the module responsible for pushing to RabbitMQ queues. 
 
 # Configuring
 **Instead of reading this section** you can refer to the file [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json) file in the repo/zip.
@@ -199,7 +202,7 @@ command | Set this to change the “netstat -ntc” command that gets executed e
 ### Common fields
 Field | Description
 --- | --- 
-class | The class of your output, one of “elasticsearch”, “file” or “stdout”
+class | The class of your output, one of “elasticsearch”, “rabbitmq”, “file” or “stdout”
 ### Elasticsearch
 Field | Description
 --- | --- 
@@ -221,6 +224,17 @@ flushInterval | *ignored for the time being*
 concurrentRequests | *ignored for the time being*
 actionRetryTimeout | Number of seconds to sleep before re-executing the elasticsearch action in progress
 concurrentRequests | *ignored for the time being*
+
+### RabbitMQ
+Field | Description
+--- | --- 
+queue_name | queue to write to
+host | your RabbitMQ host
+port | your AMQP port
+virtualhost | your known virtualhost
+username | your username
+password | your password
+uri | all of the above, overrides all, e.g.: `amqp://myuser:mypassword@suchhost:5672/vhost`
 
 ### STDOUT
 Field | Description
@@ -249,7 +263,7 @@ That should suffice for most everything you have in mind for recipes with probes
 # Running probespawner
 
 ## Export the classpath:
-`export CLASSPATH=/home/suchuser/opt/apache-tomcat-7.0.59/lib/tomcat-jdbc.jar:/home/suchuser/opt/apache-tomcat-7.0.59/bin/tomcat-juli.jar:/home/suchuser/var/lib/java/jyson-1.0.2/lib/jyson-1.0.2.jar:/home/suchuser/opt/elasticsearch-1.5.0/lib/lucene-core-4.10.4.jar:/home/suchuser/opt/elasticsearch-1.5.0/lib/elasticsearch-1.5.0.jar:/home/suchuser/var/lib/java/mysql-connector-java-5.1.20-bin.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc4.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc.jar`
+`export CLASSPATH=/home/suchuser/opt/apache-tomcat-7.0.59/lib/tomcat-jdbc.jar:/home/suchuser/opt/apache-tomcat-7.0.59/bin/tomcat-juli.jar:/home/suchuser/var/lib/java/jyson-1.0.2/lib/jyson-1.0.2.jar:/home/suchuser/opt/elasticsearch-1.5.0/lib/lucene-core-4.10.4.jar:/home/suchuser/opt/elasticsearch-1.5.0/lib/elasticsearch-1.5.0.jar:/home/suchuser/var/lib/java/mysql-connector-java-5.1.20-bin.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc4.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc.jar:/home/suchuser/opt/rabbitmq-java-client-bin-3.5.3/rabbitmq-client.jar`
 
 ## Run the jython code:
 `jython probespawner.py --configuration=example.json`
