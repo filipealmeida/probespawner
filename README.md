@@ -229,12 +229,16 @@ concurrentRequests | *ignored for the time being*
 Field | Description
 --- | --- 
 queue_name | queue to write to
+addresses | list of addresses (for failover) e.g.: `["suchhost:5672", "suchhost:5672"]`
 host | your RabbitMQ host
 port | your AMQP port
 virtualhost | your known virtualhost
 username | your username
 password | your password
 uri | all of the above, overrides all, e.g.: `amqp://myuser:mypassword@suchhost:5672/vhost`
+networkRecoveryInterval | Sets connection recovery interval. Default is 5000.
+automaticRecoveryEnabled | if true, enables connection recovery
+topologyRecoveryEnabled | Enables or disables topology recovery
 
 ### STDOUT
 Field | Description
