@@ -21,14 +21,18 @@ Some packages, namely jar files, are available here for convenience but you shou
 # What’s probespawner
 Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster, RabbitMQ queue, file or STDOUT, but any can be added.  
 Examples of parsers for “top”, “netstat -s”, “netstat -ntce”, command execution and what not have been packaged.  
-It’s immature, and since other challenges are being pursued, it’s published for everyone to mature or serve as an example for whatever.  
-It get's usefull sometimes when troubleshooting.  
+It’s immature but it's been real useful for monitoring and troubleshooting systems, databases and java applications (so far).
 
 # Why probespawner
 Policies forbidding running rivers and installing plugins in the elasticsearch nodes were instated.  
-Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such feeder.  
+Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such feeder (plus rivers are apparently now deprecated).  
 Other work extended from there to support troubleshooting, monitoring and performance statistics on the OS and applications.  
-See the examples folder for some practical uses.
+See the examples folder for some practical uses.  
+An effort do document some of the things done using probespawner will be made but some are:
+* Collect AWR from OracleDB, DMV data from Microsoft SQL Server and performance schema data from MySQL's.  <br /> Index data on Elasticsearch. Insight through kibana.
+* Collect netstat information periodically, send through RabbitMQ to Elasticsearch. D3JS to perform force directed graphs from the information with brush date/time interval selector. This animates the graph of the network conversations as you slide throught a time interval.
+* Collect top information, ship through pipeline to Elasticsearch. Kibana dashboard allows for quick browse trough the processes history, correlate with machine resources, document blocking conditions and wait events-
+* Collect stack traces periodically from application servers while monitoring resources of a JVM using JMXProbe. Data shipped through pipeline (RabbitMQ) made available for performance engineers, application testers, master troubleshooters and developers for the many reasons you might imagine.
 
 # How does probespawner work
 
