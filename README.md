@@ -19,13 +19,13 @@ Some packages, namely jar files, are available here for convenience but you shou
 [YOURCONFIG.json example here](https://github.com/filipealmeida/probespawner/blob/master/example.json)
 
 # What’s probespawner
-Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster, RabbitMQ queue, file or STDOUT, but any can be added.  
-Examples of parsers for “top”, “netstat -s”, “netstat -ntce”, command execution and what not have been packaged.  
-It’s immature but it's been real useful for monitoring and troubleshooting systems, databases and java applications (so far).
+Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster.  
+Now it's kind of a crossbreed of a logshipper with crontable.  
+It can periodicall performs JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, files and/or STDOUT.  
+Tough immature, it's kind of easy to adapt/extend and it already has been real useful for monitoring and troubleshooting systems, databases and java applications (so far).  
 
 # Why probespawner
-Policies forbidding running rivers and installing plugins in the elasticsearch nodes were instated.  
-Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such feeder (plus rivers are apparently now deprecated).  
+Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such river/feeder (plus rivers are apparently now deprecated).  
 Other work extended from there to support troubleshooting, monitoring and performance statistics on the OS and applications.  
 See the examples folder for some practical uses.  
 An effort do document some of the things done using probespawner will be made but some are:
