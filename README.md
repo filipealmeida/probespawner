@@ -21,7 +21,7 @@ Some packages, namely jar files, are available here for convenience but you shou
 # What’s probespawner
 Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster.  
 Now it's kind of a crossbreed of a logshipper with crontable.  
-It can periodicall performs JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, files and/or STDOUT.  
+It can periodically perform JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, files and/or STDOUT.  
 Tough immature, it's kind of easy to adapt/extend and it already has been real useful for monitoring and troubleshooting systems, databases and java applications (so far).  
 
 # Why probespawner
