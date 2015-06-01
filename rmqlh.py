@@ -14,16 +14,8 @@ logger = logging.getLogger(__name__)
 
 class RabbitMQ():
 	def __init__(self, config):
-		#ConnectionFactory factory = new ConnectionFactory();
-		#factory.setHost("localhost");
-		#Connection connection = factory.newConnection();
-		#Channel channel = connection.createChannel();
-		#channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-		#String message = "Hello World!";
-		#channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
-		#System.out.println(" [x] Sent '" + message + "'");
-		#channel.close();
-		#connection.close();
+		#TODO: eliminate message count ASAP, check work with RabbitMQ features
+		self.messagecount = 0
 		self.config = config
 		self.queue_name = self.config["queue_name"];
 		if "host" in self.config:
@@ -98,7 +90,12 @@ class RabbitMQ():
 		self.channel.queueDeclare(self.queue_name, False, False, False, None)
 
 	def writeDocument(self, data, force):
+		self.messagecount += 1
 		self.channel.basicPublish("", self.queue_name, None, data)
+
+	def flush(self):
+		logger.info("Flushing. Total messages: %d", self.messagecount)
+		return True
 
 	def cleanup(self):
 		self.channel.close()

@@ -185,5 +185,9 @@ class Elasticsearch():
                 time.sleep(self.config["actionRetryTimeout"])
         return indexName
 
+    def flush(self):
+        return self.writeDocument(None, True)
+
+
     def cleanup(self):
         return False

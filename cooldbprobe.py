@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 class DatabaseProbe(DummyProbe):
     def initialize(self):
+        #Instanciate tomcat's connection pool
         p = dbpool.PoolProperties()
         p.setUrl(self.getInputProperty("url"))
         p.setDriverClassName(self.getInputProperty("driverClassName"))

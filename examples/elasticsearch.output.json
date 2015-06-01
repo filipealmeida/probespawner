@@ -1,0 +1,55 @@
+{
+    "input": ["TestInput"],
+    
+    "TestInput": {
+       "description": "TestInput",
+       "probemodule": { "module": "testprobe", "name" : "TestProbe" },
+       "output": ["TestOutput"],
+       "interval": 10,
+       "maxCycles": 5
+    },
+
+    "TestOutput": {
+      "class": "elasticsearch",
+      "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
+      "hosts": ["127.0.0.1:9300", "127.0.0.1:9300"],
+      "options": {
+        "client.transport.sniff": false,
+        "cluster.name": "fuckup",
+        "client.transport.ping_timeout": "5s",
+        "client.transport.nodes_sampler_interval": "5s",
+        "client.transport.ignore_cluster_name": false
+      },
+      "bulkActions": 1000,
+      "bulkSize": 107374182400,
+      "flushInterval": 5,
+      "concurrentRequests": 1,
+      "indexPrefix": "testindex",
+      "indexSuffix": "@timestamp",
+      "type": "testtype",
+      "index_settings": {
+        "index" : {
+          "analysis" : {
+            "analyzer" : {
+              "default" : {
+                "type" : "standard",
+                "filter": ["standard", "asciifolding","lowercase"]
+              },
+              "sortable": {
+                "tokenizer": "keyword",
+                "filter": ["lowercase"]
+              }
+            }
+          }
+        }
+      },
+      "type_mapping": {
+        "testtype": { 
+          "properties" : { 
+            "@timestamp" : { "type" : "date" },
+            "test" : { "type" : "string" }
+          } 
+        }
+      }
+    }
+}

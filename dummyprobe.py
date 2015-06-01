@@ -100,10 +100,14 @@ class DummyProbe(Callable):
         return True
 
     def outputWriteDocument(self, output, data, force):
-        codec = self.outplugin[output]["config"]["codec"]
-        if codec == "json_lines":
-            data = json.dumps(data).encode('UTF-8')
+        if "codec" in self.outplugin[output]["config"]:
+            codec = self.outplugin[output]["config"]["codec"]
+            if codec == "json_lines":
+                data = json.dumps(data).encode('UTF-8')
         return self.outplugin[output]["instance"].writeDocument(data, force)
+
+    def outputFlush(self, output):
+        return self.outplugin[output]["instance"].flush()
 
     def outputCleanup(self, output):
         self.outplugin[output]["instance"].cleanup()
@@ -128,8 +132,9 @@ class DummyProbe(Callable):
                 outputType = "plugin"
             else:
                 outputType = self.output[output]["class"]
+            #TODO: review this, decoupling messed this class somewhat
             if outputType == "plugin":
-                self.outputWriteDocument(output, None, True)
+                self.outputFlush(output)
             if outputType == "file":
                 filename = self.output[output]["filename"]
                 self.openfiles[filename].close()
