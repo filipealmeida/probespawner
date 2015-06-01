@@ -211,10 +211,11 @@ Field | Description
 class | The class of your output, one of “elasticsearch”, “rabbitmq”, “file” or “stdout”
 outputmodule | Alike the input, your module and name to import e.g.: `{ "module": "jelh", "name" : "Elasticsearch" }` or `{ "module": "rmqlh", "name" : "RabbitMQ" }`
 codec | Transformations to the data, e.g.: `json_lines` (see rabbitMQ example)
-### Elasticsearch
+### Elasticsearch (jelh.py)
 Field | Description
 --- | --- 
 cluster | A string with the clustername, defaults to “elasticsearch”
+outputmodule | `{ "module": "jelh", "name" : "Elasticsearch" }`
 hosts | List of hosts:ports, e.g.: [“10.0.0.1:9300”, “10.0.0.2:9300”] If host and port are also specified, it’ll be added to this list
 host | Hostname/IP of node (defaults to “localhost”)
 port | Port for transport, defaults to 9300
@@ -233,9 +234,10 @@ concurrentRequests | *ignored for the time being*
 actionRetryTimeout | Number of seconds to sleep before re-executing the elasticsearch action in progress
 concurrentRequests | *ignored for the time being*
 
-### RabbitMQ
+### RabbitMQ (rmqlh.py)
 Field | Description
 --- | --- 
+outputmodule | `{ "module": "rmqlh", "name" : "RabbitMQ" }`
 queue_name | queue to write to
 addresses | list of addresses (for failover) e.g.: `["suchhost:5672", "suchhost:5672"]`
 host | your RabbitMQ host
