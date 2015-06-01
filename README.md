@@ -207,6 +207,8 @@ command | Set this to change the “netstat -ntc” command that gets executed e
 Field | Description
 --- | --- 
 class | The class of your output, one of “elasticsearch”, “rabbitmq”, “file” or “stdout”
+outputmodule | Alike the input, your module and name to import e.g.: `{ "module": "jelh", "name" : "Elasticsearch" }` or `{ "module": "rmqlh", "name" : "RabbitMQ" }`
+codec | Transformations to the data, e.g.: `json_lines` (see rabbitMQ example)
 ### Elasticsearch
 Field | Description
 --- | --- 

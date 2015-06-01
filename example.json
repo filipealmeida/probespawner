@@ -104,6 +104,8 @@
 
     "RabbitMQOutput": {
         "class": "rabbitmq",
+        "outputmodule": { "module": "rmqlh", "name" : "RabbitMQ" },
+        "codec": "json_lines",
         "uri": "amqp://perf:frep@suchhost:5672/foo",
         "queue_name": "pbtest",
         "host": "suchhost",
@@ -111,10 +113,11 @@
         "username": "perf",
         "password": "frep",
         "port": 5672
-    }
+    },
 
     "elasticsearchJDBCoutput": {
       "class": "elasticsearch",
+      "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
       "hosts": ["127.0.0.1:9300", "127.0.0.1:9300"],
       "options": {
         "client.transport.sniff": false,
@@ -153,6 +156,7 @@
 
     "elasticsearchJMXoutput": {
       "class": "elasticsearch",
+      "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
       "cluster" : "fuckup",
       "host" : "127.0.0.1",
       "port" : 9300,

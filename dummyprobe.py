@@ -11,21 +11,10 @@ import time
 import datetime
 
 from java.util.concurrent import Callable
-from com.ziclix.python.sql import PyConnection
-from com.ziclix.python.sql import zxJDBC
 
 import org.joda.time.DateTime as DateTime
 import com.xhaus.jyson.JysonCodec as json
 import traceback
-#import org.apache.tomcat.jdbc.pool as dbpool
-
-#TODO: decouple this
-import org.elasticsearch.common.transport.InetSocketTransportAddress as InetSocketTransportAddress
-import org.elasticsearch.client.transport.TransportClient as TransportClient
-import org.elasticsearch.common.settings.ImmutableSettings as ImmutableSettings
-import org.elasticsearch.client.transport.NoNodeAvailableException as NoNodeAvailableException
-from jelh import Elasticsearch
-from rmqlh import RabbitMQ
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +23,7 @@ class DummyProbe(Callable):
         self.input = input
         self.output = output
         self.openfiles = {}
-        self.elasticsearch = {}
-        self.rabbitmq = {}
+        self.outplugin = {}
         self.runtime = {}
         self.started = None
         self.completed = None
@@ -78,58 +66,70 @@ class DummyProbe(Callable):
             return "[%s] %s not yet scheduled" % \
                 (self.thread_used, self.input)
 
-    def elasticsearchInitialize(self, output):
-        if output not in self.elasticsearch: #It's been initialized
+    def getClassByName(self, module, className):
+        if not module:
+            if className.startswith("services."):
+                className = className.split("services.")[1]
+            l = className.split(".")
+            m = __services__[l[0]]
+            return getClassByName(m, ".".join(l[1:]))
+        elif "." in className:
+            l = className.split(".")
+            m = getattr(module, l[0])
+            return getClassByName(m, ".".join(l[1:]))
+        else:
+            return getattr(module, className)
+
+    def outputInitialize(self, output):
+        if output not in self.outplugin: #It's been initialized
             configuration = self.output[output].copy()
-            elasticsearch = Elasticsearch(configuration)
-            self.elasticsearch[output] = elasticsearch
+            self.outplugin[output] = {}
+            self.outplugin[output]["config"] = configuration
+            module = configuration['outputmodule']['module']
+            name = configuration['outputmodule']['name']
+            outputmodule = __import__(module, globals(), locals(), [''], -1)
+            outputclass = self.getClassByName(outputmodule, name)
+            self.outplugin[output]["object"] = outputclass
+            outputInstance = self.outplugin[output]["object"](configuration)
+            self.outplugin[output]["instance"] = outputInstance
+            if "codec" not in configuration:
+                self.outplugin[output]["codec"] = "plain"
         else:
             logger.debug("Already initialized output %s", output)
+
         return True
 
-    def elasticsearchWriteDocument(self, output, data, force):
-        es = self.elasticsearch[output]
-        es.writeDocument(data, force)
-        return True
+    def outputWriteDocument(self, output, data, force):
+        codec = self.outplugin[output]["config"]["codec"]
+        if codec == "json_lines":
+            data = json.dumps(data).encode('UTF-8')
+        return self.outplugin[output]["instance"].writeDocument(data, force)
 
-    def rabbitmqInitialize(self, output):
-        if output not in self.rabbitmq: #It's been initialized
-            configuration = self.output[output].copy()
-            rabbitmq = RabbitMQ(configuration)
-            self.rabbitmq[output] = rabbitmq
-        else:
-            logger.debug("Already initialized output %s", output)
-        return True
-
-    def rabbitmqWriteDocument(self, output, data, force):
-        rmq = self.rabbitmq[output]
-        rmq.writeDocument(data, force)
-        return True
-
-    def rabbitmqCleanup(self, output):
-        rmq = self.rabbitmq[output]
-        rmq.cleanup()
-        self.rabbitmq = {}
+    def outputCleanup(self, output):
+        self.outplugin[output]["instance"].cleanup()
+        self.outplugin[output] = {}
         return True
 
     def startOutput(self):
         for output in self.output:
-            outputType = self.output[output]["class"]
+            if "outputmodule" in self.output[output]:
+                outputType = "plugin"
+            else:
+                outputType = self.output[output]["class"]
+            if outputType == "plugin":
+                return self.outputInitialize(output)
             if outputType == "file":
                 filename = self.output[output]["filename"]
                 self.openfiles[filename] = open(filename, 'ab')
-            if outputType == "elasticsearch":
-                self.elasticsearchInitialize(output)
-            if outputType == "rabbitmq":
-                self.rabbitmqInitialize(output)
 
     def stopOutput(self):
         for output in self.output:
-            outputType = self.output[output]["class"]
-            if outputType == "elasticsearch":
-                self.elasticsearchWriteDocument(output, None, True)
-            if outputType == "rabbitmq":
-                self.rabbitmqWriteDocument(output, None, True)
+            if "outputmodule" in self.output[output]:
+                outputType = "plugin"
+            else:
+                outputType = self.output[output]["class"]
+            if outputType == "plugin":
+                self.outputWriteDocument(output, None, True)
             if outputType == "file":
                 filename = self.output[output]["filename"]
                 self.openfiles[filename].close()
@@ -137,12 +137,13 @@ class DummyProbe(Callable):
     def processData(self, data):
         logger.debug(data)
         for output in self.output:
-            outputType = self.output[output]["class"]
+            if "outputmodule" in self.output[output]:
+                outputType = "plugin"
+            else:
+                outputType = self.output[output]["class"]
             #TODO: deal with ommited fields
-            if outputType == "elasticsearch":
-                self.elasticsearchWriteDocument(output, data, False)
-            if outputType == "rabbitmq":
-                self.rabbitmqWriteDocument(output, json.dumps(data).encode('UTF-8'), False)
+            if outputType == "plugin":
+                self.outputWriteDocument(output, data, False)
             if outputType == "stdout":
                 codec = self.output[output]["codec"]
                 if codec == "json_lines":
@@ -179,9 +180,12 @@ class DummyProbe(Callable):
     def cleanup(self):
         logger.info("Cleaning up after cycling")
         for output in self.output:
-            outputType = self.output[output]["class"]
-            if outputType == "rabbitmq":
-                self.rabbitmqCleanup(output)
+            if "outputmodule" in self.output[output]:
+                outputType = "plugin"
+            else:
+                outputType = self.output[output]["class"]
+            if outputType == "plugin":
+                self.outputCleanup(output)
 
     def getCycleProperty(self, name):
         if name in self.cycle:

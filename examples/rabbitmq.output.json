@@ -11,6 +11,7 @@
 
     "TestOutput": {
         "class": "rabbitmq",
+        "outputmodule": { "module": "rmqlh", "name" : "RabbitMQ" },
         "addresses": ["suchhost:5672", "suchhost:5672"],
         "uri": "amqp://myuser:mypassword@suchhost:5672/vhost",
         "queue_name": "pbtest",

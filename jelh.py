@@ -184,3 +184,6 @@ class Elasticsearch():
                 logger.warning("Failed to initialize index, sleeping a %d seconds before retrying, execution paused", self.config["actionRetryTimeout"])
                 time.sleep(self.config["actionRetryTimeout"])
         return indexName
+
+    def cleanup(self):
+        return False
