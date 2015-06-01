@@ -167,6 +167,12 @@ class DummyProbe(Callable):
         self.cycle["startdt"] = str(self.runtime["jodaStart"])
         logger.info("Started cycle at %s", self.cycle["startdt"])
 
+    def now(self):
+        return DateTime().getMillis()
+
+    def nowDt(self):
+        return str(DateTime())
+
     def finishCycle(self):
         self.runtime["jodaEnd"] = DateTime()
         self.cycle["end"] = self.runtime["jodaEnd"].getMillis()

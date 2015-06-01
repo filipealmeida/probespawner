@@ -186,6 +186,8 @@ arrayElementsToRecord | Set this to true to expand an array if such is returned 
 Field | Description
 --- | --- 
 command | Set this to the command you want to execute every cycle
+regexp | Named groups regex, python style, to parse and name your fields
+metrics | List of group names which are metrics. A document/JSON entry per metric will be generated.
 
 ### Top specific
 Field | Description

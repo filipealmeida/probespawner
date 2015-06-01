@@ -1,0 +1,30 @@
+{
+    "description": "Executes and parses vmstat command, writes metrics to STDOUT and RabbitMQ queue",
+    "input": ["TestInput"],
+    
+    "TestInput": {
+       "description": "ExecInput",
+       "probemodule": { "module": "execprobe", "name" : "ExecProbe" },
+       "output": ["stdoutOutput", "TestOutput"],
+       "command": "vmstat 1 5",
+       "interval": 10,
+       "regex": "^([\t ]+?)(?P<runnable>[0-9]+)[\t ]+(?P<blocked>[0-9]+)[\t ]+(?P<swpd>[0-9]+)[\t ]+(?P<free>[0-9]+)[\t ]+(?P<buf>[0-9]+)[\t ]+(?P<cache>[0-9]+)[\t ]+(?P<si>[0-9]+)[\t ]+(?P<so>[0-9]+)[\t ]+(?P<bi>[0-9]+)[\t ]+(?P<bo>[0-9]+)[\t ]+(?P<in>[0-9]+)[\t ]+(?P<cs>[0-9]+)[\t ]+(?P<us>[0-9]+)[\t ]+(?P<sy>[0-9]+)[\t ]+(?P<id>[0-9]+)[\t ]+(?P<wa>[0-9]+)[\t ]+(?P<st>[0-9]+)",
+       "metrics": ["runnable","blocked","swpd","free","buf","cache","si","so","bi","bo","in","cs","us","sy","id","wa","st"],
+       "maxCycles": 5
+    },
+
+    "TestOutput": {
+        "class": "rabbitmq",
+        "uriz": "amqp://myuser:mypassword@suchhost:5672/vhost",
+        "outputmodule": { "module": "rmqlh", "name" : "RabbitMQ" },
+        "codec": "json_lines",
+        "queue_name": "pbtest",
+        "host": "suchhost",
+        "virtualhost": "/",
+        "username": "myuser",
+        "password": "mypassword",
+        "port": 5672
+    },
+
+    "stdoutOutput": { "class": "stdout", "codec": "json_lines"}
+}
