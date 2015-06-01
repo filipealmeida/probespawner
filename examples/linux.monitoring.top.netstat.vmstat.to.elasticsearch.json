@@ -1,0 +1,81 @@
+{
+    "description": "Sends vmstat, top, netstat -s and netstat -ntce parsed to a RabbitMQ queue",
+    "input": ["VmstatInput","TopInput","LinuxNetstatSInput","LinuxNetstatNTCInput"],
+    
+    "VmstatInput": {
+       "description": "ExecInput",
+       "probemodule": { "module": "execprobe", "name" : "ExecProbe" },
+       "output": ["TestOutput"],
+       "command": "vmstat 1 500",
+       "interval": 1,
+       "regex": "^([\t ]+?)(?P<runnable>[0-9]+)[\t ]+(?P<blocked>[0-9]+)[\t ]+(?P<swpd>[0-9]+)[\t ]+(?P<free>[0-9]+)[\t ]+(?P<buf>[0-9]+)[\t ]+(?P<cache>[0-9]+)[\t ]+(?P<si>[0-9]+)[\t ]+(?P<so>[0-9]+)[\t ]+(?P<bi>[0-9]+)[\t ]+(?P<bo>[0-9]+)[\t ]+(?P<in>[0-9]+)[\t ]+(?P<cs>[0-9]+)[\t ]+(?P<us>[0-9]+)[\t ]+(?P<sy>[0-9]+)[\t ]+(?P<id>[0-9]+)[\t ]+(?P<wa>[0-9]+)[\t ]+(?P<st>[0-9]+)",
+       "metrics": ["runnable","blocked","swpd","free","buf","cache","si","so","bi","bo","in","cs","us","sy","id","wa","st"]
+    },
+
+    "TopInput": {
+       "description": "TopInput",
+       "probemodule": { "module": "linuxtopprobe", "name" : "LinuxTopProbe" },
+       "output": ["TestOutput"],
+       "interval": 10
+    },
+
+    "LinuxNetstatSInput": {
+       "description": "LinuxNetstatSInput",
+       "probemodule": { "module": "netstats", "name" : "LinuxNetstatS" },
+       "output": ["TestOutput"],
+       "command": "netstat -s",
+       "interval": 10
+    },
+
+    "LinuxNetstatNTCInput": {
+       "description": "LinuxNetstatNTCInput",
+       "probemodule": { "module": "netstatntc", "name" : "LinuxNetstatNTC" },
+       "output": ["TestOutput"],
+       "command": "netstat -ntce",
+       "interval": 10
+    },
+
+    "TestOutput": {
+      "class": "elasticsearch",
+      "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
+      "cluster" : "arama",
+      "type": "linuxmetrics",
+      "host" : "suchhost",
+      "port" : 9300,
+      "bulkActions": 1000,
+      "bulkSize": 107374182400,
+      "flushInterval": 5,
+      "indexPrefix": "linuxindex",
+      "index_settings": {
+        "index" : {
+          "analysis" : {
+            "analyzer" : {
+              "default" : {
+                "type" : "standard",
+                "filter": ["standard", "asciifolding","lowercase"]
+              },
+              "sortable": {
+                "tokenizer": "keyword",
+                "filter": ["lowercase"]
+              }
+            }
+          }
+        }
+      },
+      "type_mapping": {
+        "linuxmetrics": { "properties" : {
+            "@timestamp" : { "type" : "date" },
+            "WCHAN" : {"type" : "string", "index" : "not_analyzed"},
+            "USER" : {"type" : "string", "index" : "not_analyzed"},
+            "metric" : {"type" : "string", "index" : "not_analyzed"},
+            "class" : {"type" : "string", "index" : "not_analyzed"},
+            "host" : {"type" : "string", "index" : "not_analyzed"},
+            "Flags" : {"type" : "string", "index" : "not_analyzed"},
+            "value" : {"type" : "double" }
+            }
+          }
+      }
+    },
+
+    "stdoutOutput": { "class": "stdout", "codec": "json_lines"}
+}

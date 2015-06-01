@@ -10,9 +10,8 @@ logger = logging.getLogger(__name__)
 class ExecProbe(DummyProbe):
 	def initialize(self):
 		if self.getInputProperty("regex") != None:
+			logger.info("Got regex for parsing: %s", self.getInputProperty("regex"))
 			self.groupRe = re.compile(self.getInputProperty("regex"))
-			#self.groupRe = re.compile(r'^([\t ]+?)(\d+)')
-			logger.info(self.groupRe)
 		else:
 			self.groupRe = None
 
