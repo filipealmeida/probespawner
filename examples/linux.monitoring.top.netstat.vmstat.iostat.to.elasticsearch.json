@@ -1,7 +1,6 @@
 {
     "description": "Sends vmstat, iostat, top, netstat -s and netstat -ntce parsed to an Elasticsearch index",
-    "inputa": ["VmstatInput","TopInput","LinuxNetstatSInput","LinuxNetstatNTCInput"],
-    "input": ["IOstatInput"],
+    "input": ["VmstatInput","TopInput","LinuxNetstatSInput","LinuxNetstatNTCInput"],
     "VmstatInput": {
        "description": "ExecInput",
        "probemodule": { "module": "execprobe", "name" : "ExecProbe" },

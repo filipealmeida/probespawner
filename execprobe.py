@@ -40,7 +40,6 @@ class ExecProbe(DummyProbe):
 				metrics = {}
 				terms = {}
 				if matches:
-					logger.info("Got match!")
 					for key in matches.groupdict():
 						if key in self.metrics:
 							metrics[key] = matches.group(key)
