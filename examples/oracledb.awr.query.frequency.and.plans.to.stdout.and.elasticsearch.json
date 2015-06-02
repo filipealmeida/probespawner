@@ -1,0 +1,58 @@
+{
+  "input": ["OracleDBMonitorInput"],
+
+  "OracleDBMonitorInput": {
+     "description": "Collects AWR data, computes query frequency, checks plan changes and resource use for each",
+     "probemodule": { "module": "cooldbprobe", "name" : "DatabaseProbe" },
+     "output": ["stdoutOutput", "elasticsearchJDBCoutput"],
+     "interval": 86400,
+     "url": "jdbc:oracle:thin:@suchhost:1521/SERVICE.XXX",
+     "driverClassName": "oracle.jdbc.OracleDriver",
+     "username": "suchuser",
+     "password": "suchpassword",
+     "minIdle": "2",
+     "maxIdle": "2",
+     "maxAge": "3600",
+     "validationQuery": "SELECT 1 FROM DUAL",
+     "sql": [
+     {
+         "statement": "/* + NO_PARALLEL */select to_char(b.begin_interval_time at TIME ZONE DBTIMEZONE,'yyyy-mm-dd\"T\"hh24:mi:ss.ff6tzh:tzm') as \"@timestamp\", a.dbid, a.sql_id, a.plan_hash_value, a.parsing_schema_name, a.executions_delta as executions, round(a.rows_processed_delta/a.executions_delta) as rows_exec, round(a.elapsed_time_delta/1000000/a.executions_delta,2) as elapsedtime_seg, round(a.buffer_gets_delta/a.executions_delta) as buffer_gets, round(a.cpu_time_delta/a.executions_delta) as cpu_time, round(a.disk_reads_delta/a.executions_delta) as disk_reads, round(a.physical_write_bytes_delta/a.executions_delta) as physical_write_bytes, round(a.sorts_delta/a.executions_delta) as sorts_delta, s.sql_text from dba_hist_sqlstat a inner join dba_hist_snapshot b on (a.snap_id=b.snap_id and a.dbid=b.dbid and a.instance_number=b.instance_number) inner join dba_hist_sqltext s on (a.dbid=s.dbid and a.sql_id=s.sql_id) where a.plan_hash_value!=0 and a.executions_delta > 0 and b.begin_interval_time between to_timestamp(substr(?,1,23),'yyyy-mm-dd\"T\"hh24:mi:ss.ff3') - INTERVAL '1' DAY and to_timestamp(substr(?,1,23),'yyyy-mm-dd\"T\"hh24:mi:ss.ff3') order by to_char(b.begin_interval_time,'yyyy_mm_dd hh24:mi:ss'), a.dbid, a.sql_id, a.plan_hash_value, a.parsing_schema_name",
+         "parameter": ["$cycle.startdt","$cycle.startdt"]
+     }
+     ]
+  },
+  "elasticsearchJDBCoutput": {
+    "class": "elasticsearch",
+    "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
+    "cluster" : "arama",
+    "hosts" : ["suchhost:9300", "suchhost:9300"],
+    "bulkActions": 1000,
+    "bulkSize": 107374182400,
+    "flushInterval": 5,
+    "concurrentRequests": 1,
+    "indexPrefix": "oracleawr",
+    "indexSuffix": "@timestamp",
+    "type": "jdbc",
+    "index_settings": {
+      "index" : {
+        "analysis" : {
+          "analyzer" : {
+            "default" : {
+              "type" : "standard",
+              "filter": ["standard", "asciifolding","lowercase"]
+            },
+            "sortable": {
+              "tokenizer": "keyword",
+              "filter": ["lowercase"]
+            }
+          }
+        }
+      }
+    },
+    "type_mapping": {
+      "jdbc": { "properties" : { "@timestamp" : { "type" : "date" } } }
+    }
+  },
+
+  "stdoutOutput": { "class": "stdout", "codec": "json_lines"}
+}
