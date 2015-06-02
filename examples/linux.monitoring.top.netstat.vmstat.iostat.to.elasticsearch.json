@@ -1,15 +1,27 @@
 {
-    "description": "Sends vmstat, top, netstat -s and netstat -ntce parsed to a RabbitMQ queue",
-    "input": ["VmstatInput","TopInput","LinuxNetstatSInput","LinuxNetstatNTCInput"],
-    
+    "description": "Sends vmstat, iostat, top, netstat -s and netstat -ntce parsed to an Elasticsearch index",
+    "inputa": ["VmstatInput","TopInput","LinuxNetstatSInput","LinuxNetstatNTCInput"],
+    "input": ["IOstatInput"],
     "VmstatInput": {
        "description": "ExecInput",
        "probemodule": { "module": "execprobe", "name" : "ExecProbe" },
        "output": ["TestOutput"],
-       "command": "vmstat 1 500",
+       "command": "vmstat 1",
        "interval": 1,
        "regex": "^([\t ]+?)(?P<runnable>[0-9]+)[\t ]+(?P<blocked>[0-9]+)[\t ]+(?P<swpd>[0-9]+)[\t ]+(?P<free>[0-9]+)[\t ]+(?P<buf>[0-9]+)[\t ]+(?P<cache>[0-9]+)[\t ]+(?P<si>[0-9]+)[\t ]+(?P<so>[0-9]+)[\t ]+(?P<bi>[0-9]+)[\t ]+(?P<bo>[0-9]+)[\t ]+(?P<in>[0-9]+)[\t ]+(?P<cs>[0-9]+)[\t ]+(?P<us>[0-9]+)[\t ]+(?P<sy>[0-9]+)[\t ]+(?P<id>[0-9]+)[\t ]+(?P<wa>[0-9]+)[\t ]+(?P<st>[0-9]+)",
        "metrics": ["runnable","blocked","swpd","free","buf","cache","si","so","bi","bo","in","cs","us","sy","id","wa","st"]
+    },
+
+    "IOstatInput": {
+       "description": "ExecInput",
+       "probemodule": { "module": "execprobe", "name" : "ExecProbe" },
+       "output": ["stdoutOutput"],
+       "command": "iostat -k 1",
+       "interval": 1,
+       "regex": "^(?P<device>[a-zA-Z0-9]+?)[\t ]+(?P<tps>[0-9,.]+)[\t ]+(?P<kbreads>[0-9,.]+)[\t ]+(?P<kbwrites>[0-9,.]+)[\t ]+(?P<kb_read>[0-9,.]+)[\t ]+(?P<kb_wrtn>[0-9,.]+)",
+       "metrics": ["tps", "kbreads", "kbwrites", "kb_read", "kb_wrtn"],
+       "terms": [],
+       "decimalMark": ","
     },
 
     "TopInput": {
