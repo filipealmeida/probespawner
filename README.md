@@ -5,6 +5,10 @@ Links are provided for every of them.
 Some packages, namely jar files, are available here for convenience but you should upgrade them should you use this project.
 
 # Installing probespawner
+
+Below you'll find the instructions to install and use Probespawner in a *NIX environment.  
+[Click here to check instruction on how to install and use in Windows] (https://github.com/filipealmeida/probespawner/blob/master/INSTALL.windows.md)  
+  
 1. Download `java` (1.7+) - https://java.com/en/download/
 2. Install `java`
 3. Download Jython - http://www.jython.org/downloads.html
