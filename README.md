@@ -14,7 +14,7 @@ Below you'll find the instructions to install and use Probespawner in a *NIX env
 3. Download Jython - http://www.jython.org/downloads.html
 4. Have `java` on your path (1.7+)
 5. Install Jython: `java -jar jython-installer-2.7.0.jar -s -d targetDirectory`
-6. Grab probespawner from github or download it from where's available.
+6. Grab probespawner from github or download it from where's available - https://github.com/filipealmeida/probespawner/
 7. Expand the tarball/zip you’ve downloaded.
 8. Enter probespawner's directory
 9. Have `jython` on your path
