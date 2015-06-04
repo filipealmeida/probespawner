@@ -14,7 +14,7 @@ Below you'll find the instructions to install and use Probespawner in a *NIX env
 3. Download Jython - http://www.jython.org/downloads.html
 4. Have `java` on your path (1.7+)
 5. Install Jython: `java -jar jython-installer-2.7.0.jar -s -d targetDirectory`
-6. Grab probespawner from github or download it from where's available.
+6. Grab probespawner from github or download it from where's available - https://github.com/filipealmeida/probespawner/
 7. Expand the tarball/zip you’ve downloaded.
 8. Enter probespawner's directory
 9. Have `jython` on your path
@@ -26,11 +26,12 @@ Below you'll find the instructions to install and use Probespawner in a *NIX env
 Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster.  
 Now it's kind of a crossbreed of a logshipper with crontable.  
 It can periodically perform JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, files and/or STDOUT.  
-Tough immature, it's kind of easy to adapt/extend and it already has been real useful for monitoring and troubleshooting systems, databases and java applications (so far).  
+It's no substitute of a log shipper but comes in handy and packs a number of interesting examples in jython on how to achieve just that.  
+Tough immature and not production ready, it's kind of easy to adapt/extend and it already has been real useful for monitoring and troubleshooting systems, databases and java applications (so far).  
 
 # Why probespawner
 Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such river/feeder (plus rivers are apparently now deprecated).  
-Other work extended from there to support troubleshooting, monitoring and performance statistics on the OS and applications.  
+Other work extended from there to help troubleshooting, monitoring and performance statistics on the OS and applications.  
 See the examples folder for some practical uses.  
 An effort do document some of the things done using probespawner will be made but some are:
 * Collect AWR from OracleDB, DMV data from Microsoft SQL Server and performance schema data from MySQL's.  <br /> Index data on Elasticsearch. Insight through kibana.
