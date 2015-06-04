@@ -26,7 +26,7 @@ Below you'll find the instructions to install and use Probespawner in a *NIX env
 Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster.  
 Now it's kind of a crossbreed of a logshipper with crontable.  
 It can periodically perform JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, files and/or STDOUT.  
-It's no substitute of a log shipper but comes in handy and packs a number of interesting examples in jython.  
+It's no substitute of a log shipper but comes in handy and packs a number of interesting examples in jython on how to achieve just that.  
 Tough immature and not production ready, it's kind of easy to adapt/extend and it already has been real useful for monitoring and troubleshooting systems, databases and java applications (so far).  
 
 # Why probespawner
