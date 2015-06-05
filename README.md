@@ -23,6 +23,7 @@ Below you'll find the instructions to install and use Probespawner in a *NIX env
 [YOURCONFIG.json example here](https://github.com/filipealmeida/probespawner/blob/master/example.json)
 
 # What’s probespawner
+The simple answer is "just because".  
 Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster.  
 Now it's kind of a crossbreed of a logshipper with crontable.  
 It can periodically perform JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, files and/or STDOUT.  
@@ -106,6 +107,7 @@ The list of possible fields for inputs and outputs is shown below:
 ### Common fields for inputs
 Field | Description
 --- | --- 
+description | Small description of your input, it'll be used to name it's JAVA thread
 probemodule | Dictionary with “module” and “name” keys specifying the module and name to import as the probe for one input
 module | The jython module that contains the probe, e.g.: databaseprobe
 name | The name to import that will be used by probespawner to instantiate the thread, e.g.: DatabaseProbe
