@@ -4,6 +4,7 @@
 from __future__ import with_statement
 import os.path
 import threading
+from java.lang import Thread as JThread
 import sys
 import logging
 from logging.config import fileConfig
@@ -268,6 +269,10 @@ class DummyProbe(Callable):
     # any exceptions will be wrapped as either ExecutionException
     # or InterruptedException
     def call(self):
+        if self.getInputProperty("description"):
+            JThread.currentThread().setName(self.getInputProperty("description"))
+        else:
+            JThread.currentThread().setName(__name__)
         self.thread_used = threading.currentThread().getName()
         self.started     = time.time()
         self.running     = True
