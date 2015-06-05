@@ -30,13 +30,14 @@ It's no substitute of a log shipper but comes in handy and packs a number of int
 Tough immature and not production ready, it's kind of easy to adapt/extend and it already has been real useful for monitoring and troubleshooting systems, databases and java applications (so far).  
 
 # Why probespawner
+The simple answer is "just because".  
 Probespawner got written initally to perform some tasks that [elasticsearch-river-jdbc](https://github.com/jprante/elasticsearch-river-jdbc) feeder did not address and to come around the bugs and difficulties if setting up one such river/feeder (plus rivers are apparently now deprecated).  
 Other work extended from there to help troubleshooting, monitoring and performance statistics on the OS and applications.  
 See the examples folder for some practical uses.  
 An effort do document some of the things done using probespawner will be made but some are:
 * Collect AWR from OracleDB, DMV data from Microsoft SQL Server and performance schema data from MySQL's.  <br /> Index data on Elasticsearch. Insight through kibana.
 * Collect netstat information periodically, send through RabbitMQ to Elasticsearch. D3JS to perform force directed graphs from the information with brush date/time interval selector. This animates the graph of the network conversations as you slide throught a time interval. [Example here.](https://github.com/filipealmeida/probespawner/blob/master/docs/001.netstat.to.elasticsearch.qbana.force.directed.graph.md)
-* Collect top information, ship through pipeline to Elasticsearch. Kibana dashboard allows for quick browse trough the processes history, correlate with machine resources, document blocking conditions and wait events-
+* Collect top information, ship through pipeline to Elasticsearch. Kibana dashboard allows for quick browse trough the processes history, correlate with machine resources, document blocking conditions and wait events. [Example here.](https://github.com/filipealmeida/probespawner/blob/master/docs/002.linux.metrics.top.iostat.netstat.top.to.elasticsearch.md)
 * Collect stack traces periodically from application servers while monitoring resources of a JVM using JMXProbe. Data shipped through pipeline (RabbitMQ) made available for performance engineers, application testers, master troubleshooters and developers for the many reasons you might imagine.
 
 # How does probespawner work
@@ -106,6 +107,7 @@ The list of possible fields for inputs and outputs is shown below:
 ### Common fields for inputs
 Field | Description
 --- | --- 
+description | Small description of your input, it'll be used to name it's JAVA thread
 probemodule | Dictionary with “module” and “name” keys specifying the module and name to import as the probe for one input
 module | The jython module that contains the probe, e.g.: databaseprobe
 name | The name to import that will be used by probespawner to instantiate the thread, e.g.: DatabaseProbe
