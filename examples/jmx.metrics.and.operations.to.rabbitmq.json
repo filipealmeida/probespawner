@@ -1,0 +1,38 @@
+{
+    "input": ["JMXInput"],
+    
+    "JMXInput": {
+       "description": "Obtains JMX metrics from JVM instance, stores on elasticsearchJMXoutput",
+       "probemodule": { "module": "jmxprobe", "name" : "JMXProbe" },
+       "output": ["RabbitMQOutput"],
+       "interval": 10,
+       "metrics": [
+         "java.lang:type=Memory/HeapMemoryUsage",
+         "java.lang:type=Runtime/Uptime"
+       ],
+       "operations": [
+         { "name": "java.lang:type=Threading/dumpAllThreads", "params": [ true, true ], "signatures": [ "boolean", "boolean" ] },
+         { "name": "java.lang:type=Threading/findMonitorDeadlockedThreads" },
+         { "name": "java.lang:type=Threading/findDeadlockedThreads" }
+       ],
+       "host":"suchhost",
+       "port":9010,
+       "maxCycles": 5000,
+       "arrayElementsToRecord": true
+    },
+    "RabbitMQOutput": {
+        "class": "rabbitmq",
+        "outputmodule": { "module": "rmqlh", "name" : "RabbitMQ" },
+        "codec":"json_lines",
+        "addresses": ["suchhost:5672", "suchhost:5672"],
+        "queue_name": "JAVAstuffQueue",
+        "host": "suchhost",
+        "virtualhost": "/",
+        "username": "myuser",
+        "password": "mypassword",
+        "port": 5672,
+        "networkRecoveryInterval": 10000,
+        "automaticRecoveryEnabled": false,
+        "topologyRecoveryEnabled": false
+    }
+}

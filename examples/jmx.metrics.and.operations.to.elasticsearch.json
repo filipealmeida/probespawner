@@ -1,0 +1,36 @@
+{
+    "input": ["JMXInput"],
+    
+    "JMXInput": {
+       "description": "Obtains JMX metrics from JVM instance, stores on elasticsearchJMXoutput",
+       "probemodule": { "module": "jmxprobe", "name" : "JMXProbe" },
+       "output": ["ElasticsearchOutput"],
+       "interval": 10,
+       "metrics": [
+         "java.lang:type=Memory/HeapMemoryUsage",
+         "java.lang:type=Runtime/Uptime"
+       ],
+       "host":"suchhost",
+       "port":9010,
+       "maxCycles": 5000,
+       "arrayElementsToRecord": true
+    },
+    "ElasticsearchOutput": {
+      "class": "elasticsearch",
+      "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
+      "cluster" : "arama",
+      "type": "jmx",
+      "host" : "suchhost",
+      "port" : 9300,
+      "bulkActions": 5,
+      "indexPrefix": "jmxindex",
+      "type_mapping": {
+        "jmx": { "properties" : {
+            "@timestamp" : { "type" : "date" },
+            "metric" : {"type" : "string", "index" : "not_analyzed"},
+            "value" : {"type" : "double" }
+            }
+          }
+      }
+    }
+}

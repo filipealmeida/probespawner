@@ -160,6 +160,7 @@ class JMXProbe(DummyProbe):
             return jsonDict
         return jsonDict
 
+    #TODO: redo this, chaos
     def queryJmx(self, obj):
         attributeName = obj['attribute']
         jsonDict = {}
@@ -169,6 +170,7 @@ class JMXProbe(DummyProbe):
         jsonDict['attribute'] = obj['attribute']
         if obj["type"] == "attribute":
             value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
+            logger.debug(value)
         else:
             value = self.connection.invoke(javax.management.ObjectName(obj['name']), obj['attribute'], obj['params'], obj['signatures'])
         self.setupValue(value, jsonDict)
@@ -183,8 +185,8 @@ class JMXProbe(DummyProbe):
                     self.processData(aobj)
                 return True
             else:
+                self.processData(jsonDict)
                 return False
-
         return self.processData(jsonDict)
 
     def tick(self):
@@ -202,8 +204,10 @@ class JMXProbe(DummyProbe):
                     logger.error("Failed to get instace of request object. Removing %s", str(obj))
                     sys.exit(100) #see TODO: above, handle this and try to recover is it existed sometime in the past
                 except ValueError:
+                    logger.debug("ValueError")
                     pass # or scream: thing not in some_list!
                 except AttributeError:
+                    logger.debug("AttributeError")
                     pass # call security, some_list not quacking like a list!
 
         if (len(self.mbeanProbes) < 1):
