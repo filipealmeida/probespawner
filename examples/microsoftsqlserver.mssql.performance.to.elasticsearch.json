@@ -69,7 +69,28 @@
         "jdbc": { 
           "properties" : { 
             "@timestamp" : { "type" : "date" },
-            "counter_name" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" }
+            "class" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "query_hash" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "query_plan_hash" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "query_text" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "servername" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "servicename" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "sql_handle" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "auth_scheme" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "hostname" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "interface" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "login" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "loginname" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "net_transport" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "program" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "wait_type" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "dbname" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "plan_handle" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "type_desc" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "counter_name" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "blockerstmt" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "lockreq" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "locktype" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" }
           } 
         }
       }
