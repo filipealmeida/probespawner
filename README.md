@@ -36,6 +36,7 @@ Other work extended from there to help troubleshooting, monitoring and performan
 See the examples folder for some practical uses.  
 An effort do document some of the things done using probespawner will be made but some are:
 * Collect AWR from OracleDB, DMV data from Microsoft SQL Server and performance schema data from MySQL's.  <br /> Index data on Elasticsearch. Insight through kibana.
+[SQLServer DMVs example here.](https://github.com/filipealmeida/probespawner/blob/master/docs/004.monitoring.SQLServer.DMV.with.elasticsearch.md)
 * Collect netstat information periodically, send through RabbitMQ to Elasticsearch. D3JS to perform force directed graphs from the information with brush date/time interval selector. This animates the graph of the network conversations as you slide throught a time interval.  
 [Example here.](https://github.com/filipealmeida/probespawner/blob/master/docs/001.netstat.to.elasticsearch.qbana.force.directed.graph.md)
 * Collect top information, ship through pipeline to Elasticsearch. Kibana dashboard allows for quick browse trough the processes history, correlate with machine resources, document blocking conditions and wait events.  
