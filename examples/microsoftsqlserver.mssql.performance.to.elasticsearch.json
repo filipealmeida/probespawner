@@ -1,0 +1,77 @@
+{
+    "input": ["DatabaseInput"],
+    
+    "DatabaseInput": {
+    "probemodule": { "module": "cooldbprobe", "name" : "DatabaseProbe" },
+    "output": ["ElasticsearchOutput"],
+    "interval": 60,
+    "url": "jdbc:sqlserver://suchhost:1433;databaseName=Master",
+    "driverClassName": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+    "username": "suchuser",
+    "password": "suchpassword",
+    "minIdle": "2",
+    "maxIdle": "2",
+    "maxAge": "86400",
+    "validationQuery": "SELECT 1",
+    "sql": [
+    {
+    "statement": "SELECT CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'locks' as class, t1.resource_type AS [locktype], DB_NAME(resource_database_id) AS [database], t1.resource_associated_entity_id AS [blkobject],t1.request_mode AS [lockreq], t1.request_session_id AS [waitersid], t2.wait_duration_ms AS [waittime], (SELECT REPLACE(REPLACE(coalesce([text],''), CHAR(13),'' ),CHAR(10),'') FROM sys.dm_exec_requests AS r WITH (NOLOCK) CROSS APPLY sys.dm_exec_sql_text(r.[sql_handle]) WHERE r.session_id = t1.request_session_id) AS [waiter_batch], (SELECT REPLACE(REPLACE(coalesce(SUBSTRING(qt.[text],r.statement_start_offset/2, (CASE WHEN r.statement_end_offset = -1 THEN LEN(CONVERT(nvarchar(max), qt.[text])) * 2 ELSE r.statement_end_offset END - r.statement_start_offset)/2),''), CHAR(13),'' ),CHAR(10),'') +CONVERT(varchar(255),r.[sql_handle],1) FROM sys.dm_exec_requests AS r WITH (NOLOCK) CROSS APPLY sys.dm_exec_sql_text(r.[sql_handle]) AS qt WHERE r.session_id = t1.request_session_id) AS [waiter_stmt], t2.blocking_session_id AS [blockersid], (SELECT REPLACE(REPLACE(coalesce([text],''), CHAR(13),'' ),CHAR(10),'') +CONVERT(varchar(255),p.[sql_handle],1) FROM sys.sysprocesses AS p CROSS APPLY sys.dm_exec_sql_text(p.[sql_handle]) WHERE p.spid = t2.blocking_session_id) AS [blockerstmt] FROM sys.dm_tran_locks AS t1 WITH (NOLOCK) INNER JOIN sys.dm_os_waiting_tasks AS t2 WITH (NOLOCK) ON t1.lock_owner_address = t2.resource_address OPTION (RECOMPILE)"
+    },
+    {
+    "statement": "select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'waitevents' as class,  wait_type, waiting_tasks_count, wait_time_ms, signal_wait_time_ms, SUM (wait_time_ms) OVER() total_wait_time_ms FROM sys.dm_os_wait_stats WITH (NOLOCK)  WHERE [wait_type] NOT IN (N'BROKER_EVENTHANDLER', N'BROKER_RECEIVE_WAITFOR', N'BROKER_TASK_STOP',N'BROKER_TO_FLUSH', N'BROKER_TRANSMITTER', N'CHECKPOINT_QUEUE',N'CHKPT', N'CLR_AUTO_EVENT', N'CLR_MANUAL_EVENT', N'CLR_SEMAPHORE',N'DBMIRROR_DBM_EVENT', N'DBMIRROR_EVENTS_QUEUE', N'DBMIRROR_WORKER_QUEUE',N'DBMIRRORING_CMD', N'DIRTY_PAGE_POLL', N'DISPATCHER_QUEUE_SEMAPHORE',N'EXECSYNC', N'FSAGENT', N'FT_IFTS_SCHEDULER_IDLE_WAIT', N'FT_IFTSHC_MUTEX',N'HADR_CLUSAPI_CALL', N'HADR_FILESTREAM_IOMGR_IOCOMPLETION', N'HADR_LOGCAPTURE_WAIT', N'HADR_NOTIFICATION_DEQUEUE', N'HADR_TIMER_TASK', N'HADR_WORK_QUEUE',N'KSOURCE_WAKEUP', N'LAZYWRITER_SLEEP', N'LOGMGR_QUEUE', N'ONDEMAND_TASK_QUEUE',N'PWAIT_ALL_COMPONENTS_INITIALIZED', N'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP',N'QDS_CLEANUP_STALE_QUERIES_TASK_MAIN_LOOP_SLEEP', N'REQUEST_FOR_DEADLOCK_SEARCH',N'RESOURCE_QUEUE', N'SERVER_IDLE_CHECK', N'SLEEP_BPOOL_FLUSH', N'SLEEP_DBSTARTUP',N'SLEEP_DCOMSTARTUP', N'SLEEP_MASTERDBREADY', N'SLEEP_MASTERMDREADY', N'SLEEP_MASTERUPGRADED', N'SLEEP_MSDBSTARTUP', N'SLEEP_SYSTEMTASK', N'SLEEP_TASK',N'SLEEP_TEMPDBSTARTUP', N'SNI_HTTP_ACCEPT', N'SP_SERVER_DIAGNOSTICS_SLEEP',N'SQLTRACE_BUFFER_FLUSH', N'SQLTRACE_INCREMENTAL_FLUSH_SLEEP', N'SQLTRACE_WAIT_ENTRIES',N'WAIT_FOR_RESULTS', N'WAITFOR', N'WAITFOR_TASKSHUTDOWN', N'WAIT_XTP_HOST_WAIT',N'WAIT_XTP_OFFLINE_CKPT_NEW_LOG', N'WAIT_XTP_CKPT_CLOSE', N'XE_DISPATCHER_JOIN',N'XE_DISPATCHER_WAIT', N'XE_TIMER_EVENT') AND waiting_tasks_count > 0"
+    },
+    {
+    "statement": "SELECT CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', 'sessions' as class, c.session_id as session_id, c.net_transport as net_transport, c.encrypt_option as encrypt_option, c.auth_scheme as auth_scheme, s.host_name as hostname, s.program_name as program, s.client_interface_name as interface, s.login_name as login, s.nt_domain as domain, s.nt_user_name as username, s.original_login_name as loginname, CONVERT(nvarchar(30), c.connect_time, 127) as connecttime, CONVERT(nvarchar(30), s.login_time, 127) as logintime FROM sys.dm_exec_connections AS c JOIN sys.dm_exec_sessions AS s ON c.session_id = s.session_id"
+    },
+    {
+    "statement": "select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'perfcounters' as class, rtrim(coalesce(counter_name,' ')) as counter_name, cntr_value as counter_value FROM sys.dm_os_performance_counters with (nolock) where counter_name in ('Checkpoint pages/sec','SQL Compilations/sec','SQL Re-Compilations/sec','Batch Requests/sec','Memory Grants Pending','User Connections','Lazy Writes/sec') or (OBJECT_NAME like '%Buffer Node%' AND counter_name in ('Page life expectancy')) union all select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'perfcounters' as class, 'Buffer Cache Hit Ratio', cast(p1.cntr_value/p2.cntr_value*100 as numeric(36,2))  FROM sys.dm_os_performance_counters p1 with (nolock), sys.dm_os_performance_counters p2 with (nolock) where p1.counter_name in ('Buffer cache hit ratio') and p2.counter_name in ('Buffer cache hit ratio base')"
+    },
+    {
+    "statement": "select top(1) CONVERT(nvarchar(30), DATEADD(ms, -1 * ((SELECT cpu_ticks/(cpu_ticks/ms_ticks) FROM sys.dm_os_sys_info) - [timestamp]), GETUTCDATE()), 127) as '@timestamp',  @@SERVERNAME as servername, @@SERVICENAME as servicename, 'cpuusage' as class, SQLProcessUtilization as sqlserver_cpu_usage, SystemIdle as system_idle, (SystemIdle - SQLProcessUtilization) as system_other_cpu from (SELECT record.value('(./Record/@id)[1]', 'int') AS record_id, record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS [SystemIdle],record.value('(./Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]','int') AS [SQLProcessUtilization], [timestamp] FROM (SELECT [timestamp], CONVERT(xml, record) AS [record] FROM sys.dm_os_ring_buffers WITH (NOLOCK) WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR' AND record LIKE N'%<SystemHealth>%') AS x) as y order by record_id DESC"
+    },
+    {
+    "statement": "select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'querystatistics' as class,  x.*, REPLACE(REPLACE(coalesce(SUBSTRING(qt.TEXT,x.statement_start_offset/2 +1, (CASE WHEN x.statement_end_offset = -1 THEN LEN(CONVERT(NVARCHAR(MAX), qt.TEXT)) * 2 ELSE x.statement_end_offset END - x.statement_start_offset)/2),''), CHAR(13),'' ),CHAR(10),'') AS query_text from ( select qs.sql_handle,query_hash  ,query_plan_hash, statement_start_offset, statement_end_offset, sum(qs.execution_count) as execution_count, sum(qs.total_rows) as total_rows, sum(qs.total_elapsed_time) as total_elapsed_time, sum(total_worker_time) as total_worker_time, sum(total_logical_reads) as total_logical_reads,  sum(total_physical_reads) as total_physical_reads  from sys.dm_exec_query_stats qs with (nolock) where qs.last_execution_time > CONVERT(varchar(23),?) and qs.last_execution_time <= GETDATE() group by qs.sql_handle,query_hash,query_plan_hash, statement_start_offset, statement_end_offset) as x CROSS APPLY sys.dm_exec_sql_text(x.sql_handle) AS qt",
+    "parameter": [ "$cycle.laststartdt" ]
+    },
+    {
+    "statement": "select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'processtriggerstats' as class,  x.*, REPLACE(REPLACE(qt.[text], CHAR(13),'' ),CHAR(10),'') AS query_text from ( select db_name(database_id) as dbname,type_desc, ps.sql_handle, ps.plan_handle, sum(ps.execution_count) as execution_count,sum(ps.total_elapsed_time) as total_elapsed_time, sum(total_worker_time) as total_worker_time, sum(total_logical_reads) as total_logical_reads,  sum(total_physical_reads) as total_physical_reads from sys.dm_exec_procedure_stats ps with (nolock) where ps.last_execution_time >  CONVERT(varchar(23),?) and ps.last_execution_time <= GETDATE() group by db_name(database_id),type_desc,ps.sql_handle,plan_handle) as x CROSS APPLY sys.dm_exec_sql_text(x.sql_handle) AS qt union all select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'processtriggerstats' as class,  x.*, REPLACE(REPLACE(qt.[text], CHAR(13),'' ),CHAR(10),'') AS query_text from ( select db_name(database_id) as dbname,type_desc, ps.sql_handle, ps.plan_handle, sum(ps.execution_count) as execution_count,sum(ps.total_elapsed_time) as total_elapsed_time, sum(total_worker_time) as total_worker_time, sum(total_logical_reads) as total_logical_reads,  sum(total_physical_reads) as total_physical_reads from sys.dm_exec_trigger_stats ps with (nolock) where ps.last_execution_time > CONVERT(varchar(23),?) and ps.last_execution_time <= GETDATE() group by db_name(database_id),type_desc,ps.sql_handle,plan_handle) as x CROSS APPLY sys.dm_exec_sql_text(x.sql_handle) AS qt",
+    "parameter": [ "$cycle.laststartdt", "$cycle.laststartdt" ]
+    }
+    ]
+    },
+    "ElasticsearchOutput": {
+      "class": "elasticsearch",
+      "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
+      "cluster" : "fuckup",
+      "host" : "127.0.0.1",
+      "port" : 9300,
+      "bulkActions": 1000,
+      "indexPrefix": "sqlserver",
+      "indexSuffix": "@timestamp",
+      "type": "jdbc",
+      "index_settings": {
+        "index" : {
+          "analysis" : {
+            "analyzer" : {
+              "default" : {
+                "type" : "standard",
+                "filter": ["standard", "asciifolding","lowercase"]
+              },
+              "sortable": {
+                "tokenizer": "keyword",
+                "filter": ["lowercase"]
+              }
+            }
+          }
+        }
+      },
+      "type_mapping": {
+        "jdbc": { 
+          "properties" : { 
+            "@timestamp" : { "type" : "date" },
+            "counter_name" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" }
+          } 
+        }
+      }
+   }
+}
