@@ -36,6 +36,9 @@
     {
     "statement": "select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'processtriggerstats' as class,  x.*, REPLACE(REPLACE(qt.[text], CHAR(13),'' ),CHAR(10),'') AS query_text from ( select db_name(database_id) as dbname,type_desc, ps.sql_handle, ps.plan_handle, sum(ps.execution_count) as execution_count,sum(ps.total_elapsed_time) as total_elapsed_time, sum(total_worker_time) as total_worker_time, sum(total_logical_reads) as total_logical_reads,  sum(total_physical_reads) as total_physical_reads from sys.dm_exec_procedure_stats ps with (nolock) where ps.last_execution_time >  CONVERT(varchar(23),?) and ps.last_execution_time <= GETDATE() group by db_name(database_id),type_desc,ps.sql_handle,plan_handle) as x CROSS APPLY sys.dm_exec_sql_text(x.sql_handle) AS qt union all select CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'processtriggerstats' as class,  x.*, REPLACE(REPLACE(qt.[text], CHAR(13),'' ),CHAR(10),'') AS query_text from ( select db_name(database_id) as dbname,type_desc, ps.sql_handle, ps.plan_handle, sum(ps.execution_count) as execution_count,sum(ps.total_elapsed_time) as total_elapsed_time, sum(total_worker_time) as total_worker_time, sum(total_logical_reads) as total_logical_reads,  sum(total_physical_reads) as total_physical_reads from sys.dm_exec_trigger_stats ps with (nolock) where ps.last_execution_time > CONVERT(varchar(23),?) and ps.last_execution_time <= GETDATE() group by db_name(database_id),type_desc,ps.sql_handle,plan_handle) as x CROSS APPLY sys.dm_exec_sql_text(x.sql_handle) AS qt",
     "parameter": [ "$cycle.laststartdt", "$cycle.laststartdt" ]
+    },
+    {
+    "statement": "SELECT CONVERT(nvarchar(30), GETUTCDATE(), 127) as '@timestamp', @@SERVERNAME as servername, @@SERVICENAME as servicename, 'iostats' as class, Drive,dbname, file_id, db_file_type, num_of_reads, num_of_writes, io_stall_read_ms, io_stall_write_ms, io_stall,num_of_bytes_read,num_of_bytes_written,logical_volume_name, tbytes, abytes FROM (SELECT substring(volume_mount_point,1,1) AS Drive, logical_volume_name,db_name(vfs.database_id) AS dbname,  vfs.file_id, db_file_type = CASE WHEN vfs.file_id = 2 THEN 'Log'  ELSE 'Data' END, SUM(num_of_reads) AS num_of_reads, SUM(io_stall_read_ms) AS io_stall_read_ms, SUM(num_of_writes) AS num_of_writes, SUM(io_stall_write_ms) AS io_stall_write_ms, SUM(num_of_bytes_read) AS num_of_bytes_read, SUM(num_of_bytes_written) AS num_of_bytes_written, SUM(io_stall) AS io_stall, sum(total_bytes) tbytes, sum(available_bytes) abytes FROM sys.dm_io_virtual_file_stats(NULL, NULL) AS vfs   CROSS APPLY sys.dm_os_volume_stats(vfs.database_id, vfs.file_id) as vol GROUP BY substring(volume_mount_point,1,1),logical_volume_name, db_name(vfs.database_id),  vfs.file_id, CASE WHEN vfs.file_id = 2 THEN 'Log' ELSE 'Data' END) AS tab OPTION (RECOMPILE)"
     }
     ]
     },
@@ -90,7 +93,10 @@
             "counter_name" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
             "blockerstmt" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
             "lockreq" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
-            "locktype" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" }
+            "locktype" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "waiter_stmt" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "waiter_batch" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "logical_volume_name" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" }
           } 
         }
       }

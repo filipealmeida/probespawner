@@ -25,7 +25,7 @@ Below you'll find the instructions to install and use Probespawner in a *NIX env
 # What’s probespawner
 Probespawner is a small jython program initially designed to repeat JDBC queries periodically and write it’s output to an Elasticsearch cluster.  
 Now it's kind of a crossbreed of a logshipper with crontable.  
-It can periodically perform JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, files and/or STDOUT.  
+It can periodically perform JDBC queries, JMX queries and operations and/or command executions, outputting it's parsed data (usually as JSON) to Elasticsearch, RabbitMQ/AMQP queues, OpenTSDB, files and/or STDOUT.  
 It's no substitute of a log shipper but comes in handy and packs a number of interesting examples in jython on how to achieve just that.  
 Tough immature and not production ready, it's kind of easy to adapt/extend and it already has been real useful for monitoring and troubleshooting systems, databases and java applications (so far).  
 
@@ -43,13 +43,14 @@ An effort do document some of the things done using probespawner will be made bu
 [Example here.](https://github.com/filipealmeida/probespawner/blob/master/docs/002.linux.metrics.top.iostat.netstat.top.to.elasticsearch.md)
 * Collect stack traces periodically from application servers while monitoring resources of a JVM using JMXProbe. Data shipped through pipeline (RabbitMQ) made available for performance engineers, application testers, master troubleshooters and developers for the many reasons you might imagine.  
 [Example here.](https://github.com/filipealmeida/probespawner/blob/master/docs/003.java.jmx.to.rabbitmq.elasticsearch.md)
+* Collect vmstat info, write metrics to OpenTSDB via socket
 
 # How does probespawner work
 
 Probespawner reads a JSON configuration file stating a list of inputs and the outputs, much like [logstash](https://www.elastic.co/products/logstash).
 The inputs provided are either JMX (probing a JVM), JDBC (querying a database) or execution of programs in different platforms.  
 Each is called a probe.  
-The data acquired cyclically from these input sources are sent to Elasticsearch, RabbitMQ, stdout or file.
+The data acquired cyclically from these input sources are sent to Elasticsearch, RabbitMQ, OpenTSDB, stdout or file.
 ![](https://github.com/filipealmeida/probespawner/blob/master/docs/probespawner.overview.png)  
 
 Basically, for each input you have defined, probespawner will launch a (java) thread as illustrated in the concurrency manual of jython.  
@@ -57,6 +58,7 @@ Each thread is an instance of a probe that performs:
 * Periodical acquisition of records from a database, writes these to an Elasticsearch cluster (using Elasticsearch’s JAVA api).
 * Periodical acquisition of JMX attributes from a JVM instance, outputs to an index of your choice on your Elasticsearch cluster and to a file on your filesystem.
 * Periodical top command parse, sends data to a RabbitMQ queue
+* Send metrics data from command execution to OpenTSDB
 * Periodically executes any task you designed for your own probe and do whatever you want with the results, for instance, write them to STDOUT.
 
 # Dependencies
@@ -98,6 +100,7 @@ The package contains the following files:
 15. **netstats.py** - Executes “netstat -s” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 16. **netstatntc.py** - Executes “netstat -ntce” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 17. **rmqlh.py** - Jython’s RabbitMQ Little Helper, the module responsible for pushing to RabbitMQ queues. 
+18. **opentsdblh.py** - Jython’s OpenTSDB (time-series database) Little Helper, the module responsible for pushing to such backend. 
 
 # Configuring
 **Instead of reading this section** you can refer to the file [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json) file in the repo/zip.
@@ -261,6 +264,18 @@ uri | all of the above, overrides all, e.g.: `amqp://myuser:mypassword@suchhost:
 networkRecoveryInterval | Sets connection recovery interval. Default is 5000.
 automaticRecoveryEnabled | if true, enables connection recovery
 topologyRecoveryEnabled | Enables or disables topology recovery
+
+### OpenTSDB (opentsdblh.py)
+Field | Description
+--- | --- 
+outputmodule | `{ "module": "opentsdblh", "name" : "OpenTSDB" }`
+queue_name | queue to write to
+addresses | list of addresses (for failover) e.g.: `["suchhost:5672", "suchhost:5672"]`
+host | your OpenTSDB host
+port | your OpenTSDB port
+metric_field | field with your metric name
+value_field | field with the value for your metric
+metrics | list of fields that are metrics to be stored
 
 ### STDOUT
 Field | Description

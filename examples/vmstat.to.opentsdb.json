@@ -1,0 +1,23 @@
+{
+    "input": ["TestInput"],
+    
+    "TestInput": {
+       "description": "ExecInput, socat -v tcp-l:1111,fork exec:'/bin/cat'",
+       "probemodule": { "module": "execprobe", "name" : "ExecProbe" },
+       "output": ["TestOutput"],
+       "command": "vmstat 1 500",
+       "interval": 1,
+       "regex": "^([\t ]+?)(?P<runnable>[0-9]+)[\t ]+(?P<blocked>[0-9]+)[\t ]+(?P<swpd>[0-9]+)[\t ]+(?P<free>[0-9]+)[\t ]+(?P<buf>[0-9]+)[\t ]+(?P<cache>[0-9]+)[\t ]+(?P<si>[0-9]+)[\t ]+(?P<so>[0-9]+)[\t ]+(?P<bi>[0-9]+)[\t ]+(?P<bo>[0-9]+)[\t ]+(?P<in>[0-9]+)[\t ]+(?P<cs>[0-9]+)[\t ]+(?P<us>[0-9]+)[\t ]+(?P<sy>[0-9]+)[\t ]+(?P<id>[0-9]+)[\t ]+(?P<wa>[0-9]+)[\t ]+(?P<st>[0-9]+)"
+    },
+
+
+    "TestOutput": {
+        "class": "opentsdb",
+        "outputmodule": { "module": "opentsdblh", "name" : "OpenTSDB" },
+        "metric_field": "metric",
+        "value_field": "value",
+        "metrics": ["runnable","blocked","swpd","free","buf","cache","si","so","bi","bo","in","cs","us","sy","id","wa","st"],
+        "host": "suchhost",
+        "port": 4242
+    }
+}
