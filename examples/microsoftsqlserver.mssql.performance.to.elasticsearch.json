@@ -96,7 +96,9 @@
             "locktype" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
             "waiter_stmt" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
             "waiter_batch" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
-            "logical_volume_name" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" }
+            "logical_volume_name" : { "type" : "string", "index" : "not_analyzed", "omit_norms": "true" },
+            "metric" : {"type" : "string", "index" : "not_analyzed"},
+            "value" : {"type" : "double" }
           } 
         }
       }

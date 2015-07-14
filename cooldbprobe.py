@@ -64,6 +64,15 @@ class DatabaseProbe(DummyProbe):
                 logger.debug("Dude, database property found: %s = %s", prop, value)
             p.setDbProperties(dbProperties)
 
+        self.metrics = {}
+        if self.getInputProperty("metrics") != None:
+            for metric in self.getInputProperty("metrics"):
+                self.metrics[metric] = 1
+        self.terms = {}
+        if self.getInputProperty("terms") != None:
+            for term in self.getInputProperty("terms"):
+                self.terms[term] = 1
+
         self.jdbcPoolProperties = p
 
         try:
@@ -161,7 +170,10 @@ class DatabaseProbe(DummyProbe):
                         #TODO: process data with commit timestamp and whatnot
                     while row is not None:
                         idx = 0
+                        out = {}
                         rowDict = {}
+                        metrics = {}
+                        terms = {}
                         for field in fields:
                             if isinstance(row[idx], str):
                                 rowDict[field] = row[idx]
@@ -170,7 +182,31 @@ class DatabaseProbe(DummyProbe):
                             else:
                                 rowDict[field] = row[idx]
                             idx = idx + 1
-                        self.processData(rowDict)
+                        for key in rowDict:
+                            if key in self.metrics:
+                                metrics[key] = rowDict[key]
+                            elif key in self.terms:
+                                terms[key] = rowDict[key]
+                            else:
+                                out[key] = rowDict[key]
+                            self.processData(out)
+                            for key in metrics:
+                                try:
+                                    out["metric"] = key
+                                    if self.getInputProperty("decimalMark"):
+                                        metrics[key] = metrics[key].replace(self.getInputProperty("decimalMark"), ".")
+                                    out["value"] = float(metrics[key])
+                                    self.processData(out)
+                                except Exception, ex:
+                                    logger.warning("Failure to parse %s as float for metric %s", key, metrics[key])
+                                self.processData(out)
+                            if 'value' in out:
+                                del out['value']
+                            for key in terms:
+                                out["metric"] = key
+                                out["term"] = str(terms[key])
+                                self.processData(out)
+
                         row = cursor.fetchone()
                     query.close()
                     assert query.closed
