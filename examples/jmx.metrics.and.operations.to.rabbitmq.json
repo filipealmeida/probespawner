@@ -2,7 +2,7 @@
     "input": ["JMXInput"],
     
     "JMXInput": {
-       "description": "Obtains JMX metrics from JVM instance, stores on elasticsearchJMXoutput",
+       "description": "Obtains JMX metrics from JVM instance, stores on RabbitMQ",
        "probemodule": { "module": "jmxprobe", "name" : "JMXProbe" },
        "output": ["RabbitMQOutput"],
        "interval": 10,

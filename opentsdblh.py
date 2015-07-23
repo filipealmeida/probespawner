@@ -167,30 +167,32 @@ class OpenTSDB():
 				if key not in self.metrics:
 					if key == "@timestamp":
 						continue
-					key_str = key + "=" + data[key]
+					key_str = key + "=" + str(data[key])
 					key_str = key_str.replace(" ", "_")
 					key_str = key_str.replace("@", "")
 					tags.append(key_str)
 
 			tags_str = " ".join(tags)
 			time_str = str(int(time.time() * 1000))
+
 			for key in data:
 				if key in self.metrics:
 					out = "put probespawner." + key + " " + time_str + " " + str(data[key]) + " " + tags_str + "\n"
 					self.tsd.sendall(out)
 					self.messagecount = self.messagecount + 1
-					logger.info(out)
+					logger.debug(out)
 
 			if "metric_field" in self.config and "value_field" in self.config:
 				if self.config["metric_field"] in data and self.config["value_field"] in data:
-					out = "put probespawner." + data[self.config["metric_field"]] + " " + time_str + " " + str(data[self.config["value_field"]]) + " " + tags_str + "\n"
+					out = "put probespawner." + str(data[self.config["metric_field"]]) + " " + time_str + " " + str(data[self.config["value_field"]]) + " " + tags_str + "\n"
 					self.tsd.sendall(out)
 					self.messagecount = self.messagecount + 1
-					logger.info(out)
+					logger.debug(out)
 
 		except Exception, ex:
 			logger.error("Some error writing document, will retry?")
 			logger.error(data)
+			logger.error(ex)
 			raise
 			#self.writeDocument(data, force)
 
