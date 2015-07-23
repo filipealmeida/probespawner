@@ -167,7 +167,10 @@ class OpenTSDB():
 				if key not in self.metrics:
 					if key == "@timestamp":
 						continue
-					key_str = key + "=" + str(data[key])
+					val = str(data[key])
+					val = val.replace(":", "/")
+					val = val.replace("=", "/")
+					key_str = key + "=" + val
 					key_str = key_str.replace(" ", "_")
 					key_str = key_str.replace("@", "")
 					tags.append(key_str)
