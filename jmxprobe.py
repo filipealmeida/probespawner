@@ -70,11 +70,17 @@ class JMXProbe(DummyProbe):
             if self.getInputProperty("metrics") != None:
                 for line in self.getInputProperty("metrics"):
                     lineno += 1
-                    obj = line.split("/",1)
-                    logger.debug("Got attribute %s from %s", obj[1], obj[0])
-                    self.mbeanProbes[len(self.mbeanProbes):] = [{ "name" : obj[0], "attribute" : obj[1], "type": "attribute" }]
+                    obj = line.split("/")
+                    oname = obj[0]
+                    oattr = obj[1]
+                    if len(obj) > 2:
+                        oattr = obj.pop()
+                        oname = "/".join(obj)
+                    logger.debug("Got attribute %s from %s (%d)", oattr, oname, len(obj))
+                    self.mbeanProbes[len(self.mbeanProbes):] = [{ "name" : oname, "attribute" : oattr, "type": "attribute" }]
             logger.info("Loading objects from attributes field")
             lineno=0
+            #TODO: parse object URI correctly, which means review above oattr/oname and apply same BETTER strategy below
             if self.getInputProperty("attributes") != None:
                 for line in self.getInputProperty("attributes"):
                     lineno += 1
