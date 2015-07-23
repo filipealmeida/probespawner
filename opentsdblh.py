@@ -46,6 +46,10 @@ class OpenTSDB():
 			self.password = self.config["password"]
 		else:
 			self.password = None
+		if "metricPrefix" in self.config:
+			self.metricPrefix = self.config["metricPrefix"]
+		else:
+			self.metricPrefix = "probespawner"
 		self.tags = []
 		if "tags" in self.config:
 			self.tags = self.config["tags"]
@@ -170,6 +174,7 @@ class OpenTSDB():
 					val = str(data[key])
 					val = val.replace(":", "/")
 					val = val.replace("=", "/")
+					val = val.replace(",", "/")
 					key_str = key + "=" + val
 					key_str = key_str.replace(" ", "_")
 					key_str = key_str.replace("@", "")
@@ -180,14 +185,14 @@ class OpenTSDB():
 
 			for key in data:
 				if key in self.metrics:
-					out = "put probespawner." + key + " " + time_str + " " + str(data[key]) + " " + tags_str + "\n"
+					out = "put " + self.metricPrefix + "." + key + " " + time_str + " " + str(data[key]) + " " + tags_str + "\n"
 					self.tsd.sendall(out)
 					self.messagecount = self.messagecount + 1
 					logger.debug(out)
 
 			if "metric_field" in self.config and "value_field" in self.config:
 				if self.config["metric_field"] in data and self.config["value_field"] in data:
-					out = "put probespawner." + str(data[self.config["metric_field"]]) + " " + time_str + " " + str(data[self.config["value_field"]]) + " " + tags_str + "\n"
+					out = "put " + self.metricPrefix + "." + str(data[self.config["metric_field"]]) + " " + time_str + " " + str(data[self.config["value_field"]]) + " " + tags_str + "\n"
 					self.tsd.sendall(out)
 					self.messagecount = self.messagecount + 1
 					logger.debug(out)
