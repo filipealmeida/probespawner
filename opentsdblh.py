@@ -168,6 +168,8 @@ class OpenTSDB():
 			#out = "".join("put %s\n" % self.add_tags_to_line(line) for line in self.sendq)
 			#if it's not a metric, it's a tag
 			tags = []
+			for tag in self.tags:
+				tags.append(tag)
 			for key in data:
 				if key not in self.metrics:
 					if key == "@timestamp":
