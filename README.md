@@ -276,6 +276,7 @@ port | your OpenTSDB port
 metric_field | field with your metric name
 value_field | field with the value for your metric
 metrics | list of fields that are metrics to be stored
+blacklist | list of blacklisted tags (keys to remove from metric push)
 
 ### STDOUT
 Field | Description

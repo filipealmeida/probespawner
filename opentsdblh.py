@@ -53,7 +53,8 @@ class OpenTSDB():
 		self.tags = []
 		if "tags" in self.config:
 			self.tags = self.config["tags"]
-
+		if "blacklist" in self.config:
+			self.blacklist = self.config["blacklist"]
 		self.addresses = []
 		if "addresses" in self.config:
 			for address in self.config["addresses"]:
@@ -170,6 +171,8 @@ class OpenTSDB():
 			for key in data:
 				if key not in self.metrics:
 					if key == "@timestamp":
+						continue
+					if key in self.blacklist:
 						continue
 					val = str(data[key])
 					val = val.replace(":", "/")
