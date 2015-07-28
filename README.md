@@ -273,6 +273,7 @@ queue_name | queue to write to
 addresses | list of addresses (for failover) e.g.: `["suchhost:5672", "suchhost:5672"]`
 host | your OpenTSDB host
 port | your OpenTSDB port
+metricPrefix | prefix to add to your OTSDB metrics, defaults to "probespawner"
 metric_field | field with your metric name
 value_field | field with the value for your metric
 metrics | list of fields that are metrics to be stored
