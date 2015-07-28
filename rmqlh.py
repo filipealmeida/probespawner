@@ -14,10 +14,17 @@ logger = logging.getLogger(__name__)
 
 class RabbitMQ():
 	def __init__(self, config):
-		#TODO: eliminate message count ASAP, check work with RabbitMQ features
+		#TODO: eliminate message count ASAP, check work with RabbitMQ features, remove spaghetti logic
 		self.messagecount = 0
 		self.config = config
-		self.queue_name = self.config["queue_name"];
+		if "queue_name" in self.config:
+			self.queue_name = self.config["queue_name"];
+		else:
+			self.queue_name = None
+		if "routingKey" in self.config:
+			self.routingKey = self.config["routingKey"];
+		else:
+			self.routingKey = ""
 		if "host" in self.config:
 			self.host = self.config["host"]
 		else:
@@ -54,6 +61,10 @@ class RabbitMQ():
 			self.topologyRecoveryEnabled = self.config["topologyRecoveryEnabled"]
 		else:
 			self.topologyRecoveryEnabled = None
+		if "exchange" in self.config:
+			self.exchange = self.config["exchange"]
+		else:
+			self.exchange = ""
 
 		self.addresses = []
 		if "addresses" in self.config:
@@ -87,11 +98,27 @@ class RabbitMQ():
 			self.connection = self.factory.newConnection(self.addresses)
 
 		self.channel = self.connection.createChannel()
-		self.channel.queueDeclare(self.queue_name, False, False, False, None)
+		if (self.queue_name != None):
+			self.channel.queueDeclare(self.queue_name, False, False, False, None)
 
 	def writeDocument(self, data, force):
 		self.messagecount += 1
-		self.channel.basicPublish("", self.queue_name, None, data)
+		if (isinstance(data,dict)):
+			#TODO: this is complete chaos, rethink on how to deal with dictionaries, for now, will send only values, keys will be ignored
+			for k, v in data.items():
+				if self.queue_name != None:
+					logger.debug("Publishing to rabbit queue %s: %s", self.queue_name, v)
+					self.channel.basicPublish(self.exchange, self.queue_name, None, v)
+				else:
+					logger.debug("Writing to rabbit exchange %s: %s", self.exchange, v)
+					self.channel.basicPublish(self.exchange, self.routingKey, None, v)		
+		else:
+			if self.queue_name != None:
+				logger.debug("Publishing to rabbit queue %s/%s: %s", self.queue_name, data)
+				self.channel.basicPublish(self.exchange, self.queue_name, None, data)
+			else:
+				logger.debug("Writing to rabbit exchange %s/%s: %s", self.exchange, data)
+				self.channel.basicPublish(self.exchange, self.routingKey, None, data)
 
 	def flush(self):
 		logger.info("Flushing. Total messages: %d", self.messagecount)

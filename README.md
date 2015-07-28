@@ -264,6 +264,8 @@ uri | all of the above, overrides all, e.g.: `amqp://myuser:mypassword@suchhost:
 networkRecoveryInterval | Sets connection recovery interval. Default is 5000.
 automaticRecoveryEnabled | if true, enables connection recovery
 topologyRecoveryEnabled | Enables or disables topology recovery
+routingKey | routing key for your data
+exchange | an exchange name if any
 
 ### OpenTSDB (opentsdblh.py)
 Field | Description
