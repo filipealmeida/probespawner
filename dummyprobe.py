@@ -10,6 +10,7 @@ import logging
 from logging.config import fileConfig
 import time
 import datetime
+import re
 
 from java.util.concurrent import Callable
 
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class DummyProbe(Callable):
     def __init__(self, input, output):
+        self.regexTransform = re.compile("(?P<token>\$[A-Za-z]+\.[a-zA-Z0-9_]+)")
         self.input = input
         self.output = output
         self.openfiles = {}
@@ -101,10 +103,31 @@ class DummyProbe(Callable):
         return True
 
     def outputWriteDocument(self, output, data, force):
+        if self.getInputProperty("transform") != None:
+            matches = re.findall(self.regexTransform, self.getInputProperty("transform"))
+            if matches:
+                out = self.getInputProperty("transform")
+                for match in matches:
+                    substitution = None
+                    (dictionary,key) = match.split(".")
+                    if dictionary == "$cycle":
+                        substitution = self.getCycleProperty(key)
+                    if dictionary == "$data":
+                        if key in data:
+                            substitution = data[key]
+                        else:
+                            logger.warning("Found no key named \"%s\" in %s, your data was discarded", key, dictionary)
+                            return None
+                    if substitution == None:
+                        logger.warning("Found no value for %s.%s, your data was discarded", dictionary, key)
+                        return None
+                    out = out.replace(str(match), str(substitution))
+                data = out
         if "codec" in self.outplugin[output]["config"]:
             codec = self.outplugin[output]["config"]["codec"]
             if codec == "json_lines":
                 data = json.dumps(data).encode('UTF-8')
+
         return self.outplugin[output]["instance"].writeDocument(data, force)
 
     def outputFlush(self, output):

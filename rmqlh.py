@@ -108,16 +108,16 @@ class RabbitMQ():
 			for k, v in data.items():
 				if self.queue_name != None:
 					logger.debug("Publishing to rabbit queue %s: %s", self.queue_name, v)
-					self.channel.basicPublish(self.exchange, self.queue_name, None, v)
+					self.channel.basicPublish(self.exchange, self.queue_name, None, str(v))
 				else:
 					logger.debug("Writing to rabbit exchange %s: %s", self.exchange, v)
-					self.channel.basicPublish(self.exchange, self.routingKey, None, v)		
+					self.channel.basicPublish(self.exchange, self.routingKey, None, str(v))
 		else:
 			if self.queue_name != None:
-				logger.debug("Publishing to rabbit queue %s/%s: %s", self.queue_name, data)
+				logger.debug("Publishing to rabbit queue %s: %s", self.queue_name, data)
 				self.channel.basicPublish(self.exchange, self.queue_name, None, data)
 			else:
-				logger.debug("Writing to rabbit exchange %s/%s: %s", self.exchange, data)
+				logger.debug("Writing to rabbit exchange %s: %s", self.exchange, data)
 				self.channel.basicPublish(self.exchange, self.routingKey, None, data)
 
 	def flush(self):
