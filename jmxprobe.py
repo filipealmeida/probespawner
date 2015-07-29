@@ -161,6 +161,7 @@ class JMXProbe(DummyProbe):
                 jsonDict[dataType] = data
                 if (dataType == "int") or (dataType == "long") or (dataType == "float"):
                     jsonDict['number'] = data + 0.0
+                jsonDict['value'] = str(data)
         except Exception, ex:
             logger.debug(ex)
             return jsonDict
@@ -179,7 +180,17 @@ class JMXProbe(DummyProbe):
             logger.debug(value)
         else:
             value = self.connection.invoke(javax.management.ObjectName(obj['name']), obj['attribute'], obj['params'], obj['signatures'])
-        self.setupValue(value, jsonDict)
+        
+        if self.getInputProperty("compositeDataToManyRecords") == True and value.__class__.__name__ == "CompositeDataSupport":
+            for key in value.getCompositeType().keySet():
+                val = value.get(key)
+                if val != None:
+                    jsonDict['attribute'] = obj['attribute'] + "." + key
+                    self.setupValue(val, jsonDict)
+                    self.processData(jsonDict)
+        else:
+            self.setupValue(value, jsonDict)
+
         if self.getInputProperty("arrayElementsToRecord"):
             if 'array' in jsonDict:
                 i = iter(jsonDict['array'])
