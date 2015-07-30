@@ -19,6 +19,7 @@ import javax.management.openmbean.CompositeType;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import re
 
 from pprint import pprint
 import time
@@ -181,6 +182,14 @@ class JMXProbe(DummyProbe):
         else:
             value = self.connection.invoke(javax.management.ObjectName(obj['name']), obj['attribute'], obj['params'], obj['signatures'])
         
+        #TODO: such crap, this class shoul not import re
+        if isinstance(self.getInputProperty("replaceInValue"), list):
+            for i in self.getInputProperty("replaceInValue"):
+                (pattern, repl) = i
+                for key in jsonDict:
+                    if isinstance(jsonDict[key], str) or isinstance(jsonDict[key], unicode):
+                        jsonDict[key] = re.sub(pattern, repl, jsonDict[key])
+
         if self.getInputProperty("compositeDataToManyRecords") == True and value.__class__.__name__ == "CompositeDataSupport":
             for key in value.getCompositeType().keySet():
                 val = value.get(key)
