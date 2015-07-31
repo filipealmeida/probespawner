@@ -189,23 +189,23 @@ class DatabaseProbe(DummyProbe):
                                 terms[key] = rowDict[key]
                             else:
                                 out[key] = rowDict[key]
-                            self.processData(out)
-                            for key in metrics:
-                                try:
-                                    out["metric"] = key
-                                    if self.getInputProperty("decimalMark"):
-                                        metrics[key] = metrics[key].replace(self.getInputProperty("decimalMark"), ".")
-                                    out["value"] = float(metrics[key])
-                                    self.processData(out)
-                                except Exception, ex:
-                                    logger.warning("Failure to parse %s as float for metric %s", key, metrics[key])
-                            #self.processData(out)
-                            if 'value' in out:
-                                del out['value']
-                            for key in terms:
+                        self.processData(out)
+                        for key in metrics:
+                            try:
                                 out["metric"] = key
-                                out["term"] = str(terms[key])
+                                if self.getInputProperty("decimalMark"):
+                                    metrics[key] = metrics[key].replace(self.getInputProperty("decimalMark"), ".")
+                                out["value"] = float(metrics[key])
                                 self.processData(out)
+                            except Exception, ex:
+                                logger.warning("Failure to parse %s as float for metric %s", key, metrics[key])
+                        #self.processData(out)
+                        if 'value' in out:
+                            del out['value']
+                        for key in terms:
+                            out["metric"] = key
+                            out["term"] = str(terms[key])
+                            self.processData(out)
 
                         row = cursor.fetchone()
                     query.close()
