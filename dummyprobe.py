@@ -143,6 +143,7 @@ class DummyProbe(Callable):
             if "outputmodule" in self.output[output]:
                 outputType = "plugin"
             else:
+                logger.warning("No \"outputmodule\" configured. If you're not using stdout or file outputs, you may have a bad configuration.")
                 outputType = self.output[output]["class"]
             if outputType == "plugin":
                 return self.outputInitialize(output)

@@ -4,6 +4,8 @@ Probespawner uses a number of great software and it depends directly on a number
 Links are provided for every of them.
 Some packages, namely jar files, are available here for convenience but you should upgrade them should you use this project.
 
+All the probespawner's source is public domain - [see LICENSE.md file](https://github.com/filipealmeida/probespawner/blob/master/INSTALL.windows.md)
+
 # Installing probespawner
 
 Below you'll find the instructions to install and use Probespawner in a *NIX environment.  
@@ -184,7 +186,7 @@ qstartdt | Same as qstart in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
 qlaststartdt | Same as qlaststart in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
 qenddt | Same as qend in ISO8601, e.g.: “2014-11-22T12:13:03.991+05:00”
 qelapsed | Elapsed time in milliseconds from start of execution until resultset traversal and insert in the outputs
-*anyother* | If you specify in your input queries any other field you can get it as a parameter on your query, see the example below for “CoolProbeInput” 
+*anyother* | If you specify in your input queries any other field you can get it as a parameter on your query, e.g.: { “statement“: “select ?“, “parameter“: [“$cycle.myparameter“], “myparameter“: “testparameter“ }
 
 ### JMX input specific parameters
 Field | Description
