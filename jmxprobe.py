@@ -204,11 +204,20 @@ class JMXProbe(DummyProbe):
             if 'array' in jsonDict:
                 i = iter(jsonDict['array'])
                 for aobj in i:
-                    aobj['jmxurl'] = self.urlstring
-                    aobj['@timestamp'] = self.cycle["startdt"]
-                    aobj['name'] = obj['name']
-                    aobj['attribute'] = obj['attribute']
-                    self.processData(aobj)
+                    if isinstance(aobj, dict):
+                        aobj['jmxurl'] = self.urlstring
+                        aobj['@timestamp'] = self.cycle["startdt"]
+                        aobj['name'] = obj['name']
+                        aobj['attribute'] = obj['attribute']
+                        self.processData(aobj)
+                    elif isinstance(aobj, str) or isinstance(aobj, unicode):
+                        oobj = {}
+                        oobj['jmxurl'] = self.urlstring
+                        oobj['@timestamp'] = self.cycle["startdt"]
+                        oobj['name'] = obj['name']
+                        oobj['attribute'] = obj['attribute']
+                        oobj['string'] = aobj
+                        self.processData(oobj)
                 return True
             else:
                 self.processData(jsonDict)
