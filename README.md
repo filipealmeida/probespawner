@@ -198,6 +198,9 @@ password | Password for JMX connection
 attributes | List of metrics to obtain from JXM, e.g.: ["java.lang:type=Memory/HeapMemoryUsage", "java.lang:type=Runtime/Uptime"]
 operations | List of operations to execute via JMX, e.g: [{ "name": "java.lang:type=Threading/dumpAllThreads", "params": [ true, true ], "signatures": [ "boolean", "boolean" ] },  { "name": "java.lang:type=Threading/findDeadlockedThreads" } ]
 arrayElementsToRecord | Set this to true to expand an array if such is returned to your request 
+"queries" | array of queries in logstash fashion, [see logstash configuration example](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-jmx.html)
+"alias" | prefix for metric names
+"compositeDataToManyRecords" | true or false, splits return object in many; for otsdb output preferred value is true
 
 ### ExecProbe specific
 Field | Description

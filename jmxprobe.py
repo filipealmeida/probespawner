@@ -19,6 +19,8 @@ import javax.management.openmbean.CompositeType;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.management.MBeanInfo;
+
 import re
 
 from pprint import pprint
@@ -36,6 +38,7 @@ class JMXProbe(DummyProbe):
         self.attributes = []
         self.operations = []
         self.mbeanProbes = []
+        self.mbeanDict = {}
         username = self.getInputProperty("username")
         password = self.getInputProperty("password")
         host = self.getInputProperty("host")
@@ -102,7 +105,10 @@ class JMXProbe(DummyProbe):
                     if 'signatures' not in operationObject:
                         operationObject['signatures'] = None
                     self.mbeanProbes[len(self.mbeanProbes):] = [operationObject]
-
+        if self.getInputProperty("alias") != None:
+            self.alias = self.getInputProperty("alias")
+        else:
+            self.alias = host + "_" + str(port)
         #connect to JMX server
         ad=array(java.lang.String,[username,password])
         n = java.util.HashMap()
@@ -113,7 +119,70 @@ class JMXProbe(DummyProbe):
         self.jmxurl = javax.management.remote.JMXServiceURL(self.urlstring)
         self.testme = javax.management.remote.JMXConnectorFactory.connect(self.jmxurl,n)
         self.connection = self.testme.getMBeanServerConnection()
+        self.buildJMXProbesFromQueries()
+        self.computeAliases()
 
+    def computeAliases(self):
+        #TODO: handle operations
+        #, "alias": str(element.getClassName()) + "." + str(attribute.getName())
+        i = iter(self.mbeanProbes)
+        for obj in i:
+            #TODO: UGLYYYYYYYYYYYYYY
+            if 'object_alias' in obj:
+                objtype = "${type}";
+                objname = "${name}";
+                match = re.search(r'type=([a-zA-Z0-9$.]+)',str(obj['name']))
+                if match:
+                    objtype = match.group(1)
+                match = re.search(r'name=([a-zA-Z0-9$.]+)',str(obj['name']))
+                if match:
+                    objname = match.group(1)
+                objalias = re.sub('\${type}', objtype, obj['object_alias'])
+                objalias = re.sub('\${name}', objname, objalias)
+                prefix = self.alias + "." + objalias
+            else:
+                prefix = self.alias + "." + re.sub(r'[a-zA-Z$0-9]+=','.',str(obj['name']))
+                prefix = re.sub(r'[:,]','',prefix)
+            prefix = re.sub(r'^\.','',prefix)
+            suffix = str(obj['attribute'])
+            obj['alias'] = prefix + "." + suffix
+
+    def buildJMXProbesFromQueries(self):
+        if self.getInputProperty("queries") != None:
+            logger.info("Processing configured queries")
+            for queryObject in self.getInputProperty("queries"):
+                self.queryObjectToMbeanProbe(queryObject)
+
+    #TODO: [{'attribute': 'ObjectPendingFinalizationCount', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.ObjectPendingFinalizationCount', 'name': 'java.lang:type=Memory'}, {'attribute': 'HeapMemoryUsage', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.HeapMemoryUsage', 'name': 'java.lang:type=Memory'}, {'attribute': 'NonHeapMemoryUsage', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.NonHeapMemoryUsage', 'name': 'java.lang:type=Memory'}, {'attribute': 'Verbose', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.Verbose', 'name': 'java.lang:type=Memory'}, {'attribute': 'ObjectName', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.ObjectName', 'name': 'java.lang:type=Memory'}, {'attribute': 'StartTime', 'type': 'attribute', 'alias': 'sun.management.RuntimeImpl.StartTime', 'name': 'java.lang:type=Runtime'}, {'attribute': 'Uptime', 'type': 'attribute', 'alias': 'sun.management.RuntimeImpl.Uptime', 'name': 'java.lang:type=Runtime'}, {'attribute': 'CollectionCount', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionCount', 'name': 'java.lang:type=GarbageCollector,name=ConcurrentMarkSweep'}, {'attribute': 'CollectionTime', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionTime', 'name': 'java.lang:type=GarbageCollector,name=ConcurrentMarkSweep'}, {'attribute': 'CollectionCount', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionCount', 'name': 'java.lang:type=GarbageCollector,name=ParNew'}, {'attribute': 'CollectionTime', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionTime', 'name': 'java.lang:type=GarbageCollector,name=ParNew'}, {'attribute': 'Count', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Count', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'TotalCapacity', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.TotalCapacity', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'MemoryUsed', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.MemoryUsed', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'Name', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Name', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'ObjectName', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.ObjectName', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'Count', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Count', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'TotalCapacity', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.TotalCapacity', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'MemoryUsed', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.MemoryUsed', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'Name', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Name', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'ObjectName', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.ObjectName', 'name': 'java.nio:type=BufferPool,name=mapped'}]
+    #TODO: duplicate code, solve
+    def queryObjectToMbeanProbe(self, queryObject):
+        logger.info("Preparing %s", queryObject['object_name'])
+        count = 0
+        objectList = self.connection.queryMBeans(javax.management.ObjectName(queryObject['object_name']), None)
+        for element in objectList:
+            info = self.connection.getMBeanInfo(element.getObjectName())
+            attrInfo = info.getAttributes()
+            for attribute in attrInfo:
+                obj = None
+                if 'attributes' in queryObject:
+                    if attribute.getName() in queryObject['attributes']:
+                        logger.info("Match on selected attribute, adding+ %s/%s", element.getObjectName(), attribute.getName())
+                        value = self.connection.getAttribute(element.getObjectName(), attribute.getName())
+                        obj = { "name" : str(element.getObjectName()), "attribute" : str(attribute.getName()), "type": "attribute" }
+                else:
+                    logger.info("All attributes selected, adding %s/%s", element.getObjectName(), attribute.getName())
+                    value = self.connection.getAttribute(element.getObjectName(), attribute.getName())
+                    obj = { "name" : str(element.getObjectName()), "attribute" : str(attribute.getName()), "type": "attribute" }
+                if obj != None:
+                    if 'object_alias' in queryObject:
+                        obj['object_alias'] = queryObject['object_alias']
+                    if 'object_value_to_jmxquery' in queryObject and queryObject['object_value_to_jmxquery'] == True:
+                        debug.warning("Feature not yet implemented, any day now ...")
+                    else:
+                        self.mbeanProbes[len(self.mbeanProbes):] = [obj]
+                        count+=1
+                #value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
+        logger.info("Added %d queries for %s", count, queryObject['object_name'])
     def cleanup(self):
         self.testme.close()
 
@@ -176,6 +245,7 @@ class JMXProbe(DummyProbe):
         jsonDict['@timestamp'] = self.cycle["startdt"]
         jsonDict['name'] = obj['name']
         jsonDict['attribute'] = obj['attribute']
+        jsonDict['alias'] = obj['alias']
         if obj["type"] == "attribute":
             value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
             logger.debug(value)
@@ -195,8 +265,10 @@ class JMXProbe(DummyProbe):
                 val = value.get(key)
                 if val != None:
                     jsonDict['attribute'] = obj['attribute'] + "." + key
+                    jsonDict['alias'] = obj['alias'] + "." + key
                     self.setupValue(val, jsonDict)
                     self.processData(jsonDict)
+            return True
         else:
             self.setupValue(value, jsonDict)
 
@@ -209,6 +281,7 @@ class JMXProbe(DummyProbe):
                         aobj['@timestamp'] = self.cycle["startdt"]
                         aobj['name'] = obj['name']
                         aobj['attribute'] = obj['attribute']
+                        aobj['alias'] = obj['alias']
                         self.processData(aobj)
                     elif isinstance(aobj, str) or isinstance(aobj, unicode):
                         oobj = {}
@@ -216,6 +289,7 @@ class JMXProbe(DummyProbe):
                         oobj['@timestamp'] = self.cycle["startdt"]
                         oobj['name'] = obj['name']
                         oobj['attribute'] = obj['attribute']
+                        oobj['alias'] = obj['alias']
                         oobj['string'] = aobj
                         self.processData(oobj)
                 return True

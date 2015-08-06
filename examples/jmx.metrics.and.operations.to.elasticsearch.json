@@ -10,6 +10,33 @@
          "java.lang:type=Memory/HeapMemoryUsage",
          "java.lang:type=Runtime/Uptime"
        ],
+       "alias": "my.metric.prefix",
+       "queries" : [
+         {
+           "object_name" : "java.lang:type=Memory"
+         }, {
+           "object_name" : "java.lang:type=Runtime",
+           "attributes" : [ "Uptime", "StartTime" ],
+           "object_alias" : "Runtime"
+         }, {
+           "object_name" : "java.lang:type=GarbageCollector,name=*",
+           "attributes" : [ "CollectionCount", "CollectionTime" ],
+           "object_alias" : "${type}.${name}"
+         }, {
+           "object_name" : "java.nio:type=BufferPool,name=*",
+           "object_alias" : "${type}.${name}"
+         },
+         {
+           "object_name" : "com.bea:Type=ServerRuntime/ThreadPoolRuntime",
+           "object_value_to_jmxquery": true
+         }
+       ],
+       "operations": [
+         { "name": "java.lang:type=Threading/dumpAllThreads", "params": [ true, true ], "signatures": [ "boolean", "boolean" ] },
+         { "name": "java.lang:type=Threading/findMonitorDeadlockedThreads" },
+         { "name": "java.lang:type=Threading/findDeadlockedThreads" }
+       ],
+       "queries": [],
        "host":"suchhost",
        "port":9010,
        "maxCycles": 5000,
