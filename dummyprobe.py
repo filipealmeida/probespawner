@@ -117,9 +117,11 @@ class DummyProbe(Callable):
                             substitution = data[key]
                         else:
                             logger.warning("Found no key named \"%s\" in %s, your data was discarded", key, dictionary)
+                            logger.warning(data)
                             return None
                     if substitution == None:
                         logger.warning("Found no value for %s.%s, your data was discarded", dictionary, key)
+                        logger.warning(data)
                         return None
                     out = out.replace(str(match), str(substitution))
                 data = out
@@ -178,6 +180,8 @@ class DummyProbe(Callable):
                 codec = self.output[output]["codec"]
                 if codec == "json_lines":
                     print(json.dumps(data))
+                else:
+                    print(data)
             if outputType == "file":
                 codec = self.output[output]["codec"]
                 if codec == "json_lines":

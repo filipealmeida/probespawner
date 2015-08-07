@@ -44,6 +44,32 @@ class JMXProbe(DummyProbe):
         host = self.getInputProperty("host")
         port = self.getInputProperty("port")
         self.queries = None
+
+        if self.getInputProperty("alias") != None:
+            self.alias = self.getInputProperty("alias")
+        else:
+            self.alias = host + "_" + str(port)
+        #connect to JMX server
+        ad=array(java.lang.String,[username,password])
+        n = java.util.HashMap()
+        n.put (javax.management.remote.JMXConnector.CREDENTIALS, ad);
+        n.put (javax.management.remote.JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, "weblogic.management.remote")
+        
+        logger.info("Connecting to %s@%s:%d", username, host, port)
+        
+        if self.getInputProperty("url") != None:
+            self.urlstring = self.getInputProperty("url")
+        else:
+            self.urlstring = "service:jmx:rmi:///jndi/rmi://" + host + ":" + str(port) + "/jmxrmi"
+        self.jmxurl = javax.management.remote.JMXServiceURL(self.urlstring)
+        self.testme = javax.management.remote.JMXConnectorFactory.connect(self.jmxurl,n)
+        self.connection = self.testme.getMBeanServerConnection()
+        self.buildJMXProbesFromQueries()
+        self.backwardCompatibilityConfiguration()
+        self.computeAliases()
+        logger.info("Got %d mbeanProbes", len(self.mbeanProbes))
+
+    def backwardCompatibilityConfiguration(self):
         if self.getInputProperty("metricsfile"):
             logger.info("loading %s", self.getInputProperty("metricsfile"))
             stream = open(self.getInputProperty("metricsfile"))
@@ -105,22 +131,6 @@ class JMXProbe(DummyProbe):
                     if 'signatures' not in operationObject:
                         operationObject['signatures'] = None
                     self.mbeanProbes[len(self.mbeanProbes):] = [operationObject]
-        if self.getInputProperty("alias") != None:
-            self.alias = self.getInputProperty("alias")
-        else:
-            self.alias = host + "_" + str(port)
-        #connect to JMX server
-        ad=array(java.lang.String,[username,password])
-        n = java.util.HashMap()
-        n.put (javax.management.remote.JMXConnector.CREDENTIALS, ad);
-        logger.info("Got %d mbeanProbes", len(self.mbeanProbes))
-        logger.info("Connecting to %s@%s:%d", username, host, port)
-        self.urlstring = "service:jmx:rmi:///jndi/rmi://" + host + ":" + str(port) + "/jmxrmi"
-        self.jmxurl = javax.management.remote.JMXServiceURL(self.urlstring)
-        self.testme = javax.management.remote.JMXConnectorFactory.connect(self.jmxurl,n)
-        self.connection = self.testme.getMBeanServerConnection()
-        self.buildJMXProbesFromQueries()
-        self.computeAliases()
 
     def computeAliases(self):
         #TODO: handle operations
@@ -177,7 +187,17 @@ class JMXProbe(DummyProbe):
                     if 'object_alias' in queryObject:
                         obj['object_alias'] = queryObject['object_alias']
                     if 'object_value_to_jmxquery' in queryObject and queryObject['object_value_to_jmxquery'] == True:
-                        debug.warning("Feature not yet implemented, any day now ...")
+                        #com.bea:ServerRuntime=box1,Name=ThreadPoolRuntime,Type=ThreadPoolRuntime
+                        value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
+                        newQueryObject = {}
+                        newQueryObject['object_name'] = str(value)
+                        if 'whitelist' in queryObject and len(queryObject['whitelist']) > 0:
+                            newQueryObject['attributes'] = queryObject['whitelist']
+                        if 'blacklist' in queryObject and len(queryObject['blacklist']) > 0:
+                            logger.warning("TODO: implement blacklist")
+                        logger.warning(value)
+                        logger.warning("trying to add %s", newQueryObject['object_name']);
+                        self.queryObjectToMbeanProbe(newQueryObject)
                     else:
                         self.mbeanProbes[len(self.mbeanProbes):] = [obj]
                         count+=1
