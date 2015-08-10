@@ -53,14 +53,21 @@ class JMXProbe(DummyProbe):
         ad=array(java.lang.String,[username,password])
         n = java.util.HashMap()
         n.put (javax.management.remote.JMXConnector.CREDENTIALS, ad);
-        n.put (javax.management.remote.JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, "weblogic.management.remote")
-        
-        logger.info("Connecting to %s@%s:%d", username, host, port)
+
+        #Jboss initial context: jndi.java.naming.provider.url=jnp://localhost:1099/
+        #jndi.java.naming.factory.url=org.jboss.naming:org.jnp.interfaces
+        #jndi.java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory
+        if self.getInputProperty("factory") != None:
+            logger.info("Factory initialized %s = %s", javax.management.remote.JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, self.getInputProperty("factory"))
+            n.put(javax.management.remote.JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, self.getInputProperty("factory"))
+            n.put(javax.naming.InitialContext.SECURITY_PRINCIPAL, username);
+            n.put(javax.naming.InitialContext.SECURITY_CREDENTIALS, password);
         
         if self.getInputProperty("url") != None:
             self.urlstring = self.getInputProperty("url")
         else:
             self.urlstring = "service:jmx:rmi:///jndi/rmi://" + host + ":" + str(port) + "/jmxrmi"
+        logger.info("Connecting to %s", self.urlstring)
         self.jmxurl = javax.management.remote.JMXServiceURL(self.urlstring)
         self.testme = javax.management.remote.JMXConnectorFactory.connect(self.jmxurl,n)
         self.connection = self.testme.getMBeanServerConnection()
