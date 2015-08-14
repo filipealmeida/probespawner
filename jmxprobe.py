@@ -1,6 +1,13 @@
 # Any copyright is dedicated to the Public Domain.
 # http://creativecommons.org/publicdomain/zero/1.0/
 
+#
+# _____ ___  ____   ___    
+#|_   _/ _ \|  _ \ / _ \ _ 
+ # | || | | | | | | | | (_)
+ # | || |_| | |_| | |_| |_ 
+ # |_| \___/|____/ \___/(_)
+# Redo the JMXProbe, consider make a new one, remember cooljmxprobe?
 from dummyprobe import DummyProbe
 
 import java.io.BufferedReader;
@@ -21,6 +28,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import javax.management.MBeanInfo;
 
+import uuid
 import re
 
 from pprint import pprint
@@ -74,6 +82,7 @@ class JMXProbe(DummyProbe):
         self.buildJMXProbesFromQueries()
         self.backwardCompatibilityConfiguration()
         self.computeAliases()
+        self.optimizeQueries()
         logger.info("Got %d mbeanProbes", len(self.mbeanProbes))
 
     def backwardCompatibilityConfiguration(self):
@@ -137,32 +146,55 @@ class JMXProbe(DummyProbe):
                         operationObject['params'] = None
                     if 'signatures' not in operationObject:
                         operationObject['signatures'] = None
+                    objuuid = uuid.uuid1()
+                    self.mbeanDict[objuuid] = operationObject
                     self.mbeanProbes[len(self.mbeanProbes):] = [operationObject]
+
+    def computeAlias(self, obj):
+        #TODO: UGLYYYYYYYYYYYYYY
+        if 'object_alias' in obj:
+            objtype = "${type}";
+            objname = "${name}";
+            match = re.search(r'type=([a-zA-Z0-9$.]+)',str(obj['name']))
+            if match:
+                objtype = match.group(1)
+            match = re.search(r'name=([a-zA-Z0-9$.]+)',str(obj['name']))
+            if match:
+                objname = match.group(1)
+            objalias = re.sub('\${type}', objtype, obj['object_alias'])
+            objalias = re.sub('\${name}', objname, objalias)
+            prefix = self.alias + "." + objalias
+        else:
+            prefix = self.alias + "." + re.sub(r'[a-zA-Z$0-9]+=','.',str(obj['name']))
+            prefix = re.sub(r'[:,]','',prefix)
+        prefix = re.sub(r'^\.','',prefix)
+        suffix = str(obj['attribute'])
+        return prefix + "." + suffix
 
     def computeAliases(self):
         #TODO: handle operations
         #, "alias": str(element.getClassName()) + "." + str(attribute.getName())
         i = iter(self.mbeanProbes)
         for obj in i:
-            #TODO: UGLYYYYYYYYYYYYYY
-            if 'object_alias' in obj:
-                objtype = "${type}";
-                objname = "${name}";
-                match = re.search(r'type=([a-zA-Z0-9$.]+)',str(obj['name']))
-                if match:
-                    objtype = match.group(1)
-                match = re.search(r'name=([a-zA-Z0-9$.]+)',str(obj['name']))
-                if match:
-                    objname = match.group(1)
-                objalias = re.sub('\${type}', objtype, obj['object_alias'])
-                objalias = re.sub('\${name}', objname, objalias)
-                prefix = self.alias + "." + objalias
-            else:
-                prefix = self.alias + "." + re.sub(r'[a-zA-Z$0-9]+=','.',str(obj['name']))
-                prefix = re.sub(r'[:,]','',prefix)
-            prefix = re.sub(r'^\.','',prefix)
-            suffix = str(obj['attribute'])
-            obj['alias'] = prefix + "." + suffix
+            obj['alias'] = self.computeAlias(obj)
+
+    def optimizeQueries(self):
+        logger.info("Optimizing queries.")
+        #TODO: handle operations
+        #, "alias": str(element.getClassName()) + "." + str(attribute.getName())
+        i = iter(self.mbeanProbes)
+        for obj in i:
+            if obj['type'] == "attribute":
+                if obj['name'] not in self.mbeanDict:
+                    self.mbeanDict[obj['name']] = {}
+                    self.mbeanDict[obj['name']]['name'] = obj['name']
+                    self.mbeanDict[obj['name']]['attributes'] = []
+                    self.mbeanDict[obj['name']]['type'] = 'attribute'
+                    extrakeys = re.findall(r'((\w+)=(\w+)),?', obj['name'])
+                    for parts in extrakeys:
+                        (group, variable, value) = parts
+                        self.mbeanDict[obj['name']]["object_" + variable.lower()] = value
+                self.mbeanDict[obj['name']]['attributes'][len(self.mbeanDict[obj['name']]['attributes']):] = [obj['attribute']]
 
     def buildJMXProbesFromQueries(self):
         if self.getInputProperty("queries") != None:
@@ -210,6 +242,7 @@ class JMXProbe(DummyProbe):
                         count+=1
                 #value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
         logger.info("Added %d queries for %s", count, queryObject['object_name'])
+
     def cleanup(self):
         self.testme.close()
 
@@ -265,20 +298,29 @@ class JMXProbe(DummyProbe):
         return jsonDict
 
     #TODO: redo this, chaos
-    def queryJmx(self, obj):
-        attributeName = obj['attribute']
+    def queryJmx(self, key):
+        obj = self.mbeanDict[key]
+        if "attributes" in obj:
+            attributeValues = self.connection.getAttributes(javax.management.ObjectName(key), obj['attributes'])
+            for value in attributeValues:
+                obj['attribute'] = value.getName(); 
+                obj['alias'] = self.computeAlias(obj)
+                self.handleResponse(obj, value.getValue())
+        elif obj["type"] == "attribute":
+            value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
+            self.handleResponse(obj, value)
+        else:
+            value = self.connection.invoke(javax.management.ObjectName(obj['name']), obj['attribute'], obj['params'], obj['signatures'])
+            self.handleResponse(obj, value)
+
+    #TODO: redo all class, it has just reached the point where you can't distinguish this from a salad
+    def handleResponse(self, obj, value):
         jsonDict = {}
         jsonDict['jmxurl'] = self.urlstring
         jsonDict['@timestamp'] = self.cycle["startdt"]
         jsonDict['name'] = obj['name']
         jsonDict['attribute'] = obj['attribute']
         jsonDict['alias'] = obj['alias']
-        if obj["type"] == "attribute":
-            value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
-            logger.debug(value)
-        else:
-            value = self.connection.invoke(javax.management.ObjectName(obj['name']), obj['attribute'], obj['params'], obj['signatures'])
-        
         #TODO: such crap, this class shoul not import re
         if isinstance(self.getInputProperty("replaceInValue"), list):
             for i in self.getInputProperty("replaceInValue"):
@@ -327,8 +369,8 @@ class JMXProbe(DummyProbe):
 
     def tick(self):
         #TODO: this thing with operations and attributes is a messup, repeated code everywhere: REDO whole class
-        i = iter(self.mbeanProbes)
-        for obj in i:
+        #i = iter(self.mbeanDict)
+        for obj in self.mbeanDict:
             try:
                 self.queryJmx(obj)
             #except javax.management.InstanceNotFoundException, e:
