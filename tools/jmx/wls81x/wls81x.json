@@ -1,0 +1,22 @@
+{
+      "url":"t3://127.0.0.1:7001",
+      "username": "weblogic",
+      "password": "weblogic",
+      "alias": "myproject",
+      "queries" : [
+        {
+          "object_name" : "java.lang:type=JVMRuntime",
+          "attributes" : [ "HeapSizeCurrent", "HeapFreeCurrent" ]
+        }, {
+          "object_name" : "java.lang:type=ServerRuntime",
+          "attributes": [ "State", "OpenSocketsCurrentCount", "SocketsOpenedTotalCount" ]
+        }, {
+          "object_name" : "com.bea:type=ExecuteQueueRuntime",
+          "attributes": [ "ServicedRequestTotalCount", "ExecuteThreadCurrentIdleCount",  "ExecuteThreadTotalCount", "PendingRequestCurrentCount", "PendingRequestCurrentCount", "ServicedRequestTotalCount", "StuckExecuteThreads" ]
+        }, {
+          "object_name" : "com.bea:type=JDBCConnectionPoolRuntime",
+          "attributes": ["ActiveConnectionsHighCount", "LeakedConnectionCount", "PrepStmtCacheMissCount", "WaitingForConnectionHighCount", "FailuresToReconnectCount", "WaitSecondsHighCount", "ConnectionDelayTime", "ConnectionsTotalCount", "WaitingForConnectionCurrentCount", "ActiveConnectionsCurrentCount", "MaxCapacity", "CurrCapacity"]
+        }
+       ],
+       "interval": 20
+}
