@@ -130,6 +130,7 @@ if (len(mbeanProbes) <= 0):
     sys.exit(1000)
 #main loop
 while (True):
+    start = time.time()
     for query in mbeanProbes:
         mbean = query['mbean']
         attribute = query['attribute']
@@ -139,10 +140,25 @@ while (True):
         obj['location'] = mbean.getObjectName().getLocation()
         obj['name'] = mbean.getName()
         obj['type'] = mbean.getType()
+        obj['shipper'] = "wls81x"
         obj['alias'] = aliasPrefix + obj['type'] + "." + obj['name'] + "." + attribute
         setupValue(value, obj)
-        print JSONValue.toJSONString(obj);
-    logger.info("Sleeping for " + str(sleepTime) + "s")
-    time.sleep(sleepTime);
+        #print JSONValue.toJSONString(obj);#encases keys and string in single quotes, bad bad JSON
+        out = []
+        extrakeys = re.findall(r'((\w+)=(\w+)),?', obj['name'])
+        for parts in extrakeys:
+            (group, variable, value) = parts
+            out[variable.lower()] = value
+        for key in obj:
+            val = obj[key]
+            if isinstance(val, str) or isinstance(val, unicode):
+                val = '"' + val + '"'
+            out[len(out):] = ['"' + key + '":' + str(val)]
+        print "{" + ",".join(out) + "}"
+    elapsed = time.time() - start
+    effectiveSleepTime = sleepTime - elapsed
+    logger.info("Sleeping for " + str(effectiveSleepTime) + "s")
+    if effectiveSleepTime > 0:
+        time.sleep(effectiveSleepTime)
 
 sys.exit(0)

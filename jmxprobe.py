@@ -155,14 +155,19 @@ class JMXProbe(DummyProbe):
         if 'object_alias' in obj:
             objtype = "${type}";
             objname = "${name}";
-            match = re.search(r'type=([a-zA-Z0-9$.]+)',str(obj['name']))
+            objlocation = "${objlocation}"
+            match = re.search(r'type=([a-zA-Z0-9$.]+)',str(obj['name']), re.I)
             if match:
                 objtype = match.group(1)
-            match = re.search(r'name=([a-zA-Z0-9$.]+)',str(obj['name']))
+            match = re.search(r'name=([a-zA-Z0-9$.]+)',str(obj['name']), re.I)
             if match:
                 objname = match.group(1)
+            match = re.search(r'location=([a-zA-Z0-9$.]+)',str(obj['name']), re.I)
+            if match:
+                objlocation = match.group(1)
             objalias = re.sub('\${type}', objtype, obj['object_alias'])
             objalias = re.sub('\${name}', objname, objalias)
+            objalias = re.sub('\${location}', objlocation, objalias)
             prefix = self.alias + "." + objalias
         else:
             prefix = self.alias + "." + re.sub(r'[a-zA-Z$0-9]+=','.',str(obj['name']))
@@ -189,11 +194,13 @@ class JMXProbe(DummyProbe):
                     self.mbeanDict[obj['name']] = {}
                     self.mbeanDict[obj['name']]['name'] = obj['name']
                     self.mbeanDict[obj['name']]['attributes'] = []
+                    self.mbeanDict[obj['name']]['parts'] = {}
                     self.mbeanDict[obj['name']]['type'] = 'attribute'
                     extrakeys = re.findall(r'((\w+)=(\w+)),?', obj['name'])
                     for parts in extrakeys:
                         (group, variable, value) = parts
                         self.mbeanDict[obj['name']]["object_" + variable.lower()] = value
+                        self.mbeanDict[obj['name']]['parts'][variable.lower()] = value
                 self.mbeanDict[obj['name']]['attributes'][len(self.mbeanDict[obj['name']]['attributes']):] = [obj['attribute']]
 
     def buildJMXProbesFromQueries(self):
@@ -321,6 +328,9 @@ class JMXProbe(DummyProbe):
         jsonDict['name'] = obj['name']
         jsonDict['attribute'] = obj['attribute']
         jsonDict['alias'] = obj['alias']
+        if 'parts' in self.mbeanDict[obj['name']]:
+            for key in self.mbeanDict[obj['name']]['parts']:
+                jsonDict[key] = self.mbeanDict[obj['name']]['parts'][key]
         #TODO: such crap, this class shoul not import re
         if isinstance(self.getInputProperty("replaceInValue"), list):
             for i in self.getInputProperty("replaceInValue"):

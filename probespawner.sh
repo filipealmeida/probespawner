@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-for i in `find . -name \*.jar`; do
+for i in `find jars -name \*.jar`; do
   CLASSPATH=${CLASSPATH}:${i}
 done
 export CLASSPATH
