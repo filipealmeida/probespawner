@@ -1,0 +1,6 @@
+{
+      "url":"service:jmx:iiop://127.0.0.1:7001/jndi/weblogic.management.mbeanservers.domainruntime",
+      "username": "monitor",
+      "password": "somepass",
+      "factory": "weblogic.management.remote"
+}
