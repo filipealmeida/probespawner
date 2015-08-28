@@ -21,8 +21,6 @@ Running:
 ```
 user@host $ CLASSPATH="webserviceclient.jar:weblogic.jar:json_simple-1.1.jar:joda-time-1.4.jar:log4j-1.2.17.jar"
 user@host $ jython wls81x-list_all_mbeans.py wls81x.json
-```
-jython wls81x-list_all_mbeans.py wls81x.json.ignore
 weblogic.rmi.internal.BasicRemoteRef@10c - hostID: '372478632010414314S:127.0.0.1:[7001,7001,7002,7002,7001,7002,-1,0,0]:live:AdminServer', oid: '268'
 ==============================================
 [Caching Stub]Proxy for live:Location=(...)
@@ -39,6 +37,7 @@ Hit runme.sh to test on weblogic:weblogic@localhost:7001
 This example will output the attribute values configured in wls81x.json file in JSON to STDOUT, namely some interesting attributes of JVMRuntime, ServerRuntime, ExecuteQueueRuntime and JDBCConnectionPoolRuntime.
 
 The configuration file is self explanatory but you should know that only "type" (as in "java.lang:type=JVMRuntime") will be used to get the mbean list through weblogic.management.Helper.getAdminMBeanHome( user, pwd, url ).getMBeansByType( *type* ):
+
 ```
 {
       "url":"t3://127.0.0.1:7001",
