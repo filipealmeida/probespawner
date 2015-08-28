@@ -1,0 +1,90 @@
+{
+    "input": ["JMXInputForWeblogic"],
+    
+    "JMXInputForWeblogic": {
+      "url":"service:jmx:iiop://127.0.0.1:7001/jndi/weblogic.management.mbeanservers.domainruntime",
+      "username": "aMonitorUserInWeblogicRealm",
+      "password": "suchpassword",
+      "factory": "weblogic.management.remote",
+      "alias": "myDomain",
+      "queries" : [
+        {
+          "object_name" : "java.lang:type=Memory",
+          "attributes" : [ "NonHeapMemoryUsage", "HeapMemoryUsage" ]
+        }, {
+          "object_name" : "java.lang:type=Runtime",
+          "attributes" : [ "Uptime", "StartTime" ]
+        }, {
+          "object_name" : "java.lang:type=JVMRuntime",
+          "attributes" : [ "HeapFreeCurrent", "HeapSizeMax", "HeapSizeCurrent" ]
+        }, {
+          "object_name" : "java.lang:type=GarbageCollector,name=*",
+          "attributes" : [ "CollectionCount", "CollectionTime" ],
+          "object_alias" : "${type}.${name}"
+        }, {
+          "object_name" : "java.nio:type=BufferPool,name=*",
+          "object_alias" : "${type}.${name}"
+        },
+        {
+          "object_name" : "com.bea:Name=*,ServerRuntime=*,Type=ThreadPoolRuntime",
+          "attributes" : [ "ExecuteThreadIdleCount", "ExecuteThreadTotalCount", "CompletedRequestCount", "HoggingThreadCount", "MinThreadsConstraintsCompleted", "MinThreadsConstraintsPending", "PendingUserRequestCount", "QueueLength", "StandbyThreadCount", "Throughput" ]
+        },
+        {
+          "object_name" : "com.bea:Name=*,ServerRuntime=*,Type=JDBCDataSourceRuntime",
+          "attributes" : [ "ActiveConnectionsCurrentCount", "ActiveConnectionsHighCount", "CurrCapacity", "WaitingForConnectionHighCount", "WaitingForConnectionCurrentCount", "WaitSecondsHighCount" ]
+        }
+       ],
+       "operations": [
+         { "name": "java.lang:type=Threading/dumpAllThreads", "params": [ true, true ], "signatures": [ "boolean", "boolean" ] },
+         { "name": "java.lang:type=Threading/findMonitorDeadlockedThreads" },
+         { "name": "java.lang:type=Threading/findDeadlockedThreads" }
+       ],
+       "description": "Obtains JMX metrics from JVM instance, stores on elasticsearch",
+       "probemodule": { "module": "jmxprobe", "name" : "JMXProbe" },
+       "output": ["RabbitMQOutput", "ElasticsearchOutput"],
+       "interval": 20,
+       "maxCycles": 200000,
+       "arrayElementsToRecord": true,
+       "compositeDataToManyRecords":true
+    },
+    "ElasticsearchOutput": {
+      "class": "elasticsearch",
+      "outputmodule": { "module": "jelh", "name" : "Elasticsearch" },
+      "cluster" : "elasticsearch",
+      "type": "jmx",
+      "host" : "suchhost",
+      "port" : 9300,
+      "bulkActions": 1000,
+      "indexPrefix": "jmxindex",
+      "type_mapping": {
+        "jmx": { "properties" : {
+            "@timestamp" : { "type" : "date" },
+            "metric" : {"type" : "string", "index" : "not_analyzed"},
+            "alias" : {"type" : "string", "index" : "not_analyzed"},
+            "attribute" : {"type" : "string", "index" : "not_analyzed"},
+            "name" : {"type" : "string", "index" : "not_analyzed"},
+            "type" : {"type" : "string", "index" : "not_analyzed"},
+            "number" : {"type" : "double" },
+            "int" : {"type" : "double" },
+            "jmxurl" : {"type" : "string", "index" : "not_analyzed"},
+            "value" : {"type" : "string", "index" : "not_analyzed"}
+            }
+          }
+      }
+    },
+    "RabbitMQOutput": {
+        "class": "rabbitmq",
+        "outputmodule": { "module": "rmqlh", "name" : "RabbitMQ" },
+        "addresses": ["rabbitMQhost:5672"],
+        "exchange": "jmxexchange",
+        "routingKey": "jmx.myDomain",
+        "virtualhost": "metrics",
+        "username": "suchuser",
+        "password": "suchpassword",
+        "networkRecoveryInterval": 10000,
+        "automaticRecoveryEnabled": false,
+        "topologyRecoveryEnabled": false,
+        "messageTemplate": { "sourcetype": "jmx", "serviceid": "myDomain" }
+    },
+    "stdoutOutput": { "class": "stdout", "codec": "plain" }
+}

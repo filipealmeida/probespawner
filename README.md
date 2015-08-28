@@ -232,6 +232,7 @@ Field | Description
 class | The class of your output, one of “elasticsearch”, “rabbitmq”, “file” or “stdout”
 outputmodule | Alike the input, your module and name to import e.g.: `{ "module": "jelh", "name" : "Elasticsearch" }` or `{ "module": "rmqlh", "name" : "RabbitMQ" }`
 codec | Transformations to the data, e.g.: `json_lines` (see rabbitMQ example)
+messageTemplate | A dictionary to append to be sent/added in the output message
 ### Elasticsearch (jelh.py)
 Field | Description
 --- | --- 

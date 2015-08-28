@@ -169,6 +169,10 @@ class DummyProbe(Callable):
     def processData(self, data):
         logger.debug(data)
         for output in self.output:
+            if (self.getOutputProperty(output, "messageTemplate") != None):
+                template = self.getOutputProperty(output, "messageTemplate")
+                for key in template:
+                    data[key] = template[key]
             if "outputmodule" in self.output[output]:
                 outputType = "plugin"
             else:
