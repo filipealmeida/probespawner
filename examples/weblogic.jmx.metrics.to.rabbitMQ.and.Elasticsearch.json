@@ -15,7 +15,7 @@
           "object_name" : "java.lang:type=Runtime",
           "attributes" : [ "Uptime", "StartTime" ]
         }, {
-          "object_name" : "java.lang:type=JVMRuntime",
+          "object_name" : "com.bea:Name=*,ServerRuntime=*,Type=JVMRuntime",
           "attributes" : [ "HeapFreeCurrent", "HeapSizeMax", "HeapSizeCurrent" ]
         }, {
           "object_name" : "java.lang:type=GarbageCollector,name=*",

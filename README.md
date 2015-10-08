@@ -273,6 +273,11 @@ automaticRecoveryEnabled | if true, enables connection recovery
 topologyRecoveryEnabled | Enables or disables topology recovery
 routingKey | routing key for your data
 exchange | an exchange name if any
+declareQueue | if false, binds else, creates; true or false (defaults to false)
+passive | true or false (defaults to false)
+durable | true or false (defaults to false)
+exclusive | true or false (defaults to false)
+
 
 ### OpenTSDB (opentsdblh.py)
 Field | Description

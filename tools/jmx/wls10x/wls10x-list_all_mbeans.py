@@ -44,7 +44,10 @@ jmxurl = javax.management.remote.JMXServiceURL(url)
 localHome = javax.management.remote.JMXConnectorFactory.connect(jmxurl, n)
 remote = localHome.getMBeanServerConnection()
 print(remote)
-objectList = remote.queryMBeans(None, None);
+if (sys.argv[2] != None):
+    objectList = remote.queryMBeans(javax.management.ObjectName(sys.argv[2]), None)
+else:
+    objectList = remote.queryMBeans(None, None)
 mbeanIterator = objectList.iterator();
 while (mbeanIterator.hasNext()):
     print "=============================================="

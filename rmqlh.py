@@ -21,6 +21,10 @@ class RabbitMQ():
 			self.queue_name = self.config["queue_name"];
 		else:
 			self.queue_name = None
+		if "queue" in self.config:
+			self.queue_name = self.config["queue"];
+		else:
+			self.queue_name = None
 		if "routingKey" in self.config:
 			self.routingKey = self.config["routingKey"];
 		else:
@@ -99,7 +103,26 @@ class RabbitMQ():
 
 		self.channel = self.connection.createChannel()
 		if (self.queue_name != None):
-			self.channel.queueDeclare(self.queue_name, False, False, False, None)
+			self.passive = False
+			self.durable = False
+			self.exclusive = False
+			self.autodelete = False
+			self.declareQueue = False
+			if "passive" in self.config:
+				self.passive = self.config["passive"]
+			if "durable" in self.config:
+				self.durable = self.config["durable"]
+			if "exclusive" in self.config:
+				self.exclusive = self.config["exclusive"]
+			if "declareQueue" in self.config:
+				self.declareQueue = self.config["declareQueue"]
+			if self.declareQueue:
+				logger.info("Declaring queue %s", self.queue_name)
+				self.channel.queueDeclare(self.queue_name, self.passive, self.durable, self.exclusive, None)
+			else:
+				logger.info("Binding to queue %s, with exchange '%s' and routingKey '%s'", self.queue_name, self.exchange, self.routingKey)
+				self.channel.queueBind(self.queue_name, self.exchange, self.routingKey)
+				
 
 	def writeDocument(self, data, force):
 		self.messagecount += 1
