@@ -59,7 +59,7 @@ class ExecProbe(DummyProbe):
 							self.processData(out)
 						except Exception, ex:
 							logger.warning("Failure to parse %s as float for metric %s", key, metrics[key])
-						self.processData(out)
+						#self.processData(out)
 					if 'value' in out:
 						del out['value']
 					for key in terms:
