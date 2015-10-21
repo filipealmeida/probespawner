@@ -125,7 +125,10 @@ class Elasticsearch():
         client = self.runtime["client"]
         if data != None:
             indexName = self.getIndexName(data)
-            bulkRequest.add(client.prepareIndex(indexName, self.config["type"]).setSource(json.dumps(data)))
+            if "_id" in data:
+                bulkRequest.add(client.prepareIndex(indexName, self.config["type"], data["_id"]).setSource(json.dumps(data)))
+            else:
+                bulkRequest.add(client.prepareIndex(indexName, self.config["type"]).setSource(json.dumps(data)))
             self.runtime["requestsPending"] = self.runtime["requestsPending"] + 1
         #TIME TO FLUSH
         if (self.runtime["requestsPending"] > 0) and ((self.runtime["requestsPending"] >= self.config["bulkActions"]) or (force == True)):
