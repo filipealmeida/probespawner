@@ -176,9 +176,15 @@ class DatabaseProbe(DummyProbe):
                         terms = {}
                         for field in fields:
                             if isinstance(row[idx], str):
-                                rowDict[field] = row[idx]
+                                if self.getInputProperty("ignoreFieldIfEmptyString") and len(row[idx]) == 0:
+                                    logger.warning("Ignoring key %s due to empty value", field)
+                                else:
+                                    rowDict[field] = row[idx]
                             elif isinstance(row[idx], unicode):
-                                rowDict[field] = row[idx]
+                                if self.getInputProperty("ignoreFieldIfEmptyString") and len(row[idx]) == 0:
+                                    logger.warning("Ignoring key %s due to empty value", field)
+                                else:
+                                    rowDict[field] = row[idx]
                             else:
                                 rowDict[field] = row[idx]
                             idx = idx + 1

@@ -176,6 +176,7 @@ start | Unix timestamp in milliseconds in your script environment timezone at yo
 laststart | Unix timestamp in milliseconds of your previous cycle start
 end | Unix timestamp in milliseconds of the end of last cycle
 numCycles | Number of cycles started
+ignoreFieldIfEmptyString | If set to true, removes empty string values from obtained rows
 qstart | Unix timestamp in milliseconds of a given query start
 qlaststart | Unix timestamp in milliseconds of a the last time a given query started
 qend | Unix timestamp in milliseconds of a the last time a given query ended
