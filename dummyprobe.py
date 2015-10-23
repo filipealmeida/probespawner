@@ -132,6 +132,22 @@ class DummyProbe(Callable):
 
         return self.outplugin[output]["instance"].writeDocument(data, force)
 
+    def evaluateCycleExpression(self, expression, data):
+        matches = re.findall(self.regexTransform, expression)
+        out = expression
+        if matches:
+            for match in matches:
+                substitution = None
+                (dictionary,key) = match.split(".")
+                if dictionary == "$cycle":
+                    substitution = self.getCycleProperty(key)
+                if dictionary == "$data":
+                    if key in data:
+                        substitution = data[key]
+                if substitution != None:
+                    out = out.replace(str(match), str(substitution))
+        return out
+
     def outputFlush(self, output):
         return self.outplugin[output]["instance"].flush()
 
@@ -168,11 +184,15 @@ class DummyProbe(Callable):
 
     def processData(self, data):
         logger.debug(data)
+        if (self.getInputProperty("messageTemplate") != None):
+            template = self.getInputProperty("messageTemplate")
+            for key in template:
+                data[key] = self.evaluateCycleExpression(template[key], data)
         for output in self.output:
             if (self.getOutputProperty(output, "messageTemplate") != None):
                 template = self.getOutputProperty(output, "messageTemplate")
                 for key in template:
-                    data[key] = template[key]
+                    data[key] = self.evaluateCycleExpression(template[key], data)
             if "outputmodule" in self.output[output]:
                 outputType = "plugin"
             else:

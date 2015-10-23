@@ -125,6 +125,7 @@ interval |Interval in seconds to wait for the next iteration. The time spent in 
 maxCycles | How many cycles before exiting the thread
 storeCycleState | Stores parameters and information about cycles, like number of cycles, start and end times, etc. e.g.: "storeCycleState": { "enabled": true, "filename": "sincedb.json"}
 transform | Transformation of message to a string e.g.: “jmx.$data.attribute $cycle.laststart $data.number host=suchhost“
+messageTemplate | A dictionary to append to be sent/added in the output message, can use $cycle and $data variables
 
 ### JDBC input specific parameters
 There are two possible modules, “cooldbprobe”, “databaseprobe” and “zxdatabaseprobe”  
@@ -233,7 +234,7 @@ Field | Description
 class | The class of your output, one of “elasticsearch”, “rabbitmq”, “file” or “stdout”
 outputmodule | Alike the input, your module and name to import e.g.: `{ "module": "jelh", "name" : "Elasticsearch" }` or `{ "module": "rmqlh", "name" : "RabbitMQ" }`
 codec | Transformations to the data, e.g.: `json_lines` (see rabbitMQ example)
-messageTemplate | A dictionary to append to be sent/added in the output message
+messageTemplate | A dictionary to append to be sent/added in the output message, can use $cycle and $data variables
 ### Elasticsearch (jelh.py)
 Field | Description
 --- | --- 
