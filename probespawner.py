@@ -111,6 +111,7 @@ for inputConfig in scheduler(config["input"]):
     #from config[inputConfig]['probemodule']['module'] import config[inputConfig]['probemodule']['name']
     probemodule = __import__(module, globals(), locals(), [''], -1)
     probeclass = getClassByName(probemodule, name)
+    config[inputConfig]["__inputname__"] = inputConfig
     obj = probeclass(config[inputConfig], outputs)
     ecs.submit(obj)
 
