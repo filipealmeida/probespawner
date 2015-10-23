@@ -39,6 +39,7 @@ from array import array
 import com.xhaus.jyson.JysonCodec as json
 
 import logging
+import traceback
 logger = logging.getLogger(__name__)
 
 class JMXProbe(DummyProbe):
@@ -207,10 +208,7 @@ class JMXProbe(DummyProbe):
         if self.getInputProperty("queries") != None:
             logger.info("Processing configured queries")
             for queryObject in self.getInputProperty("queries"):
-                try:
-                    self.queryObjectToMbeanProbe(queryObject)
-                except:
-                    logger.warning("%s Failure grabbing attribute in %s", self.getInputProperty("__inputname__"), queryObject['object_name']);
+                self.queryObjectToMbeanProbe(queryObject)
 
     #TODO: [{'attribute': 'ObjectPendingFinalizationCount', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.ObjectPendingFinalizationCount', 'name': 'java.lang:type=Memory'}, {'attribute': 'HeapMemoryUsage', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.HeapMemoryUsage', 'name': 'java.lang:type=Memory'}, {'attribute': 'NonHeapMemoryUsage', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.NonHeapMemoryUsage', 'name': 'java.lang:type=Memory'}, {'attribute': 'Verbose', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.Verbose', 'name': 'java.lang:type=Memory'}, {'attribute': 'ObjectName', 'type': 'attribute', 'alias': 'sun.management.MemoryImpl.ObjectName', 'name': 'java.lang:type=Memory'}, {'attribute': 'StartTime', 'type': 'attribute', 'alias': 'sun.management.RuntimeImpl.StartTime', 'name': 'java.lang:type=Runtime'}, {'attribute': 'Uptime', 'type': 'attribute', 'alias': 'sun.management.RuntimeImpl.Uptime', 'name': 'java.lang:type=Runtime'}, {'attribute': 'CollectionCount', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionCount', 'name': 'java.lang:type=GarbageCollector,name=ConcurrentMarkSweep'}, {'attribute': 'CollectionTime', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionTime', 'name': 'java.lang:type=GarbageCollector,name=ConcurrentMarkSweep'}, {'attribute': 'CollectionCount', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionCount', 'name': 'java.lang:type=GarbageCollector,name=ParNew'}, {'attribute': 'CollectionTime', 'type': 'attribute', 'alias': 'sun.management.GarbageCollectorImpl.CollectionTime', 'name': 'java.lang:type=GarbageCollector,name=ParNew'}, {'attribute': 'Count', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Count', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'TotalCapacity', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.TotalCapacity', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'MemoryUsed', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.MemoryUsed', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'Name', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Name', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'ObjectName', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.ObjectName', 'name': 'java.nio:type=BufferPool,name=direct'}, {'attribute': 'Count', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Count', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'TotalCapacity', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.TotalCapacity', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'MemoryUsed', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.MemoryUsed', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'Name', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.Name', 'name': 'java.nio:type=BufferPool,name=mapped'}, {'attribute': 'ObjectName', 'type': 'attribute', 'alias': 'sun.management.ManagementFactoryHelper$1.ObjectName', 'name': 'java.nio:type=BufferPool,name=mapped'}]
     #TODO: duplicate code, solve
@@ -222,34 +220,39 @@ class JMXProbe(DummyProbe):
             info = self.connection.getMBeanInfo(element.getObjectName())
             attrInfo = info.getAttributes()
             for attribute in attrInfo:
-                obj = None
-                if 'attributes' in queryObject:
-                    if attribute.getName() in queryObject['attributes']:
-                        logger.info("Match on selected attribute, adding+ %s/%s", element.getObjectName(), attribute.getName())
+                try:
+                    obj = None
+                    if 'attributes' in queryObject:
+                        if attribute.getName() in queryObject['attributes']:
+                            logger.info("Match on selected attribute, adding+ %s/%s", element.getObjectName(), attribute.getName())
+                            value = self.connection.getAttribute(element.getObjectName(), attribute.getName())
+                            obj = { "name" : str(element.getObjectName()), "attribute" : str(attribute.getName()), "type": "attribute" }
+                    else:
+                        logger.info("%s::All attributes selected, adding %s/%s", self.getInputProperty("__inputname__"), element.getObjectName(), attribute.getName())
                         value = self.connection.getAttribute(element.getObjectName(), attribute.getName())
                         obj = { "name" : str(element.getObjectName()), "attribute" : str(attribute.getName()), "type": "attribute" }
-                else:
-                    logger.info("%s::All attributes selected, adding %s/%s", self.getInputProperty("__inputname__"), element.getObjectName(), attribute.getName())
-                    value = self.connection.getAttribute(element.getObjectName(), attribute.getName())
-                    obj = { "name" : str(element.getObjectName()), "attribute" : str(attribute.getName()), "type": "attribute" }
-                if obj != None:
-                    if 'object_alias' in queryObject:
-                        obj['object_alias'] = queryObject['object_alias']
-                    if 'object_value_to_jmxquery' in queryObject and queryObject['object_value_to_jmxquery'] == True:
-                        #com.bea:ServerRuntime=box1,Name=ThreadPoolRuntime,Type=ThreadPoolRuntime
-                        value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
-                        newQueryObject = {}
-                        newQueryObject['object_name'] = str(value)
-                        if 'whitelist' in queryObject and len(queryObject['whitelist']) > 0:
-                            newQueryObject['attributes'] = queryObject['whitelist']
-                        if 'blacklist' in queryObject and len(queryObject['blacklist']) > 0:
-                            logger.warning("TODO: implement blacklist")
-                        logger.warning(value)
-                        logger.warning("trying to add %s", newQueryObject['object_name']);
-                        self.queryObjectToMbeanProbe(newQueryObject)
-                    else:
-                        self.mbeanProbes[len(self.mbeanProbes):] = [obj]
-                        count+=1
+                    if obj != None:
+                        if 'object_alias' in queryObject:
+                            obj['object_alias'] = queryObject['object_alias']
+                        if 'object_value_to_jmxquery' in queryObject and queryObject['object_value_to_jmxquery'] == True:
+                            #com.bea:ServerRuntime=box1,Name=ThreadPoolRuntime,Type=ThreadPoolRuntime
+                            value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
+                            newQueryObject = {}
+                            newQueryObject['object_name'] = str(value)
+                            if 'whitelist' in queryObject and len(queryObject['whitelist']) > 0:
+                                newQueryObject['attributes'] = queryObject['whitelist']
+                            if 'blacklist' in queryObject and len(queryObject['blacklist']) > 0:
+                                logger.warning("TODO: implement blacklist")
+                            logger.warning(value)
+                            logger.warning("trying to add %s", newQueryObject['object_name']);
+                            self.queryObjectToMbeanProbe(newQueryObject)
+                        else:
+                            self.mbeanProbes[len(self.mbeanProbes):] = [obj]
+                            count+=1
+                except:
+                    tb = traceback.format_exc()
+                    logger.warning("%s Failure grabbing attribute %s in %s", self.getInputProperty("__inputname__"), attribute, queryObject['object_name'])
+                    logger.warning(tb)
                 #value = self.connection.getAttribute(javax.management.ObjectName(obj['name']), obj['attribute'])
         logger.info("Added %d queries for %s", count, queryObject['object_name'])
 
