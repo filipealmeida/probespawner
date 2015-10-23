@@ -112,6 +112,8 @@ class DummyProbe(Callable):
                     (dictionary,key) = match.split(".")
                     if dictionary == "$cycle":
                         substitution = self.getCycleProperty(key)
+                    if dictionary == "$config":
+                        substitution = self.getInputProperty(key)
                     if dictionary == "$data":
                         if key in data:
                             substitution = data[key]
@@ -141,6 +143,8 @@ class DummyProbe(Callable):
                 (dictionary,key) = match.split(".")
                 if dictionary == "$cycle":
                     substitution = self.getCycleProperty(key)
+                if dictionary == "$config":
+                    substitution = self.getInputProperty(key)
                 if dictionary == "$data":
                     if key in data:
                         substitution = data[key]
