@@ -294,6 +294,7 @@ class DummyProbe(Callable):
                 with open(configurationFile) as data_file:
                     json_string = data_file.read()
                 self.cycle = json.loads(json_string)
+                self.cycle["numCycles"] = 0
             except Exception, ex:
                 logger.warning("Unable to read cycle state from file %s", configurationFile)
             
