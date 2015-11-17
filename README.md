@@ -103,6 +103,7 @@ The package contains the following files:
 16. **netstatntc.py** - Executes “netstat -ntce” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 17. **rmqlh.py** - Jython’s RabbitMQ Little Helper, the module responsible for pushing to RabbitMQ queues. 
 18. **opentsdblh.py** - Jython’s OpenTSDB (time-series database) Little Helper, the module responsible for pushing to such backend. 
+19. **jelh2.py** - Jython’s Elasticsearch 2.0 Little Helper, the module responsible for the bulk requests to elasticsearch versions 2+. 
 
 # Configuring
 **Instead of reading this section** you can refer to the file [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json) file in the repo/zip.
@@ -235,7 +236,7 @@ class | The class of your output, one of “elasticsearch”, “rabbitmq”, �
 outputmodule | Alike the input, your module and name to import e.g.: `{ "module": "jelh", "name" : "Elasticsearch" }` or `{ "module": "rmqlh", "name" : "RabbitMQ" }`
 codec | Transformations to the data, e.g.: `json_lines` (see rabbitMQ example)
 messageTemplate | A dictionary to append to be sent/added in the output message, can use $cycle, $config and $data variables
-### Elasticsearch (jelh.py)
+### Elasticsearch 1.x, 2.x (jelh.py or jelh2.py)
 Field | Description
 --- | --- 
 cluster | A string with the clustername, defaults to “elasticsearch”

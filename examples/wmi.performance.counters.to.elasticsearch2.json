@@ -1,0 +1,53 @@
+{
+    "description": "Example: Performance counters indexing in Elasticsearch, a.k.a. WMI to Elasticsearch",
+    "input": ["WMIPerformanceCounters"],
+
+    "WMIPerformanceCounters": {
+       "description": "ExecInput",
+       "probemodule": { "module": "execprobe", "name" : "ExecProbe" },
+       "output": ["TestOutput"],
+       "command": "typeperf \"\\Memory\\Available bytes\" \"\\processor(_total)\\% processor time\"",
+       "interval": 1,
+       "regex": "^\"(?P<localtimestr>.+)\",\"(?P<Memory_AvailableBytes>[0-9.]+)\",\"(?P<ProcessorTotal_ProcessorTime>[0-9.]+)\"",
+       "metrics": ["Memory_AvailableBytes", "ProcessorTotal_ProcessorTime"]
+    },
+
+    "TestOutput": {
+      "class": "elasticsearch",
+      "outputmodule": { "module": "jelh2", "name" : "Elasticsearch" },
+      "cluster" : "elasticsearch",
+      "type": "performancecounters",
+      "host" : "suchhost",
+      "port" : 9300,
+      "bulkActions": 5,
+      "bulkSize": 107374182400,
+      "flushInterval": 5,
+      "indexPrefix": "wmi",
+      "index_settings": {
+        "index" : {
+          "analysis" : {
+            "analyzer" : {
+              "default" : {
+                "type" : "standard",
+                "filter": ["standard", "asciifolding","lowercase"]
+              },
+              "sortable": {
+                "tokenizer": "keyword",
+                "filter": ["lowercase"]
+              }
+            }
+          }
+        }
+      },
+      "type_mapping": {
+        "performancecounters": { "properties" : {
+            "@timestamp" : { "type" : "date" },
+            "metric" : {"type" : "string", "index" : "not_analyzed"},
+            "value" : {"type" : "double" }
+            }
+          }
+      }
+    },
+
+    "stdoutOutput": { "class": "stdout", "codec": "json_lines"}
+}
