@@ -15,12 +15,7 @@ from com.ziclix.python.sql import zxJDBC
 import com.xhaus.jyson.JysonCodec as json
 import org.apache.tomcat.jdbc.pool as dbpool
 import java.util.Properties as Properties
-#import org.elasticsearch.common.transport.InetSocketTransportAddress as InetSocketTransportAddress
-#import org.elasticsearch.client.transport.TransportClient as TransportClient
-#import org.elasticsearch.common.settings.ImmutableSettings as ImmutableSettings
-#import org.elasticsearch.client.transport.NoNodeAvailableException as NoNodeAvailableException
 import traceback
-from jelh import Elasticsearch
 from dummyprobe import DummyProbe
 import org.joda.time.DateTime as DateTime
 
