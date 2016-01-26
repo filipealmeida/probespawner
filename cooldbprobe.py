@@ -138,16 +138,19 @@ class DatabaseProbe(DummyProbe):
                             if len(strlist) > 0:
                                 if strlist[1] in ["qend","qstart","qlaststart","qenddt","qstartdt","qlaststartdt","qelapsed"]:
                                     value = self.getQueryParameter(phrase["id"], strlist[1])
+                                    if value == None:
+                                        logger.debug("Dude, couldn't fetch local parameter %s = %s, going global", parameter, value)
+                                        value = self.getCycleProperty(strlist[1][1:])
                                     preparedStatementParams.append(value)
                                     preparedStatementParamsDict[parameter] = value
-                                    logger.debug("Dude, got parameter %s = %s", parameter, value)
+                                    logger.debug("Dude, got local parameter %s = %s", parameter, value)
                                 else:
                                     value = self.getCycleProperty(strlist[1])
                                     if value == None:
                                         value = phrase[strlist[1]]
                                     preparedStatementParams.append(value)
                                     preparedStatementParamsDict[parameter] = value
-                                    logger.debug("Dude, got parameter %s = %s", parameter, value)
+                                    logger.debug("Dude, got global parameter %s = %s", parameter, value)
                                 logger.debug(strlist[1])
                     logger.debug("Dude, preparing statement: %s", phrase["id"])
                     query = cursor.prepare(phrase["statement"])
