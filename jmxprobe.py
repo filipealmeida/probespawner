@@ -60,25 +60,28 @@ class JMXProbe(DummyProbe):
             self.alias = host + "_" + str(port)
         #connect to JMX server
         ad=array(java.lang.String,[username,password])
-        n = java.util.HashMap()
-        n.put (javax.management.remote.JMXConnector.CREDENTIALS, ad);
+        self.n = java.util.HashMap()
+        self.n.put (javax.management.remote.JMXConnector.CREDENTIALS, ad);
 
         #Jboss initial context: jndi.java.naming.provider.url=jnp://localhost:1099/
         #jndi.java.naming.factory.url=org.jboss.naming:org.jnp.interfaces
         #jndi.java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory
         if self.getInputProperty("factory") != None:
             logger.info("Factory initialized %s = %s", javax.management.remote.JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, self.getInputProperty("factory"))
-            n.put(javax.management.remote.JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, self.getInputProperty("factory"))
-            n.put(javax.naming.InitialContext.SECURITY_PRINCIPAL, username);
-            n.put(javax.naming.InitialContext.SECURITY_CREDENTIALS, password);
+            self.n.put(javax.management.remote.JMXConnectorFactory.PROTOCOL_PROVIDER_PACKAGES, self.getInputProperty("factory"))
+            self.n.put(javax.naming.InitialContext.SECURITY_PRINCIPAL, username);
+            self.n.put(javax.naming.InitialContext.SECURITY_CREDENTIALS, password);
         
         if self.getInputProperty("url") != None:
             self.urlstring = self.getInputProperty("url")
         else:
             self.urlstring = "service:jmx:rmi:///jndi/rmi://" + host + ":" + str(port) + "/jmxrmi"
+        self.initializeJMX()
+
+    def initializeJMX(self):
         logger.info("Connecting to %s", self.urlstring)
         self.jmxurl = javax.management.remote.JMXServiceURL(self.urlstring)
-        self.testme = javax.management.remote.JMXConnectorFactory.connect(self.jmxurl,n)
+        self.testme = javax.management.remote.JMXConnectorFactory.connect(self.jmxurl,self.n)
         self.connection = self.testme.getMBeanServerConnection()
         self.buildJMXProbesFromQueries()
         self.backwardCompatibilityConfiguration()
@@ -390,6 +393,12 @@ class JMXProbe(DummyProbe):
             try:
                 self.queryJmx(obj)
             #except javax.management.InstanceNotFoundException, e:
+            except java.io.IOException, ex:
+                logger.error("java.io.IOException, retrying JMX connection %s in 30 seconds", str(self.urlstring))
+                logger.error(ex)
+                time.sleep(30);
+                self.initializeJMX()
+                pass
             except Exception, ex:
                 logger.error("Caught exception getting value: %s", str(obj))
                 logger.error(ex)
@@ -398,10 +407,10 @@ class JMXProbe(DummyProbe):
                     logger.error("Failed to get instace of request object. Removing %s", str(obj))
                     sys.exit(100) #see TODO: above, handle this and try to recover is it existed sometime in the past
                 except ValueError:
-                    logger.debug("ValueError")
+                    logger.error("ValueError")
                     pass # or scream: thing not in some_list!
                 except AttributeError:
-                    logger.debug("AttributeError")
+                    logger.error("AttributeError")
                     pass # call security, some_list not quacking like a list!
 
         if (len(self.mbeanProbes) < 1):

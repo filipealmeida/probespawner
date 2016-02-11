@@ -118,17 +118,17 @@ for inputConfig in scheduler(config["input"]):
 workingProbes = len(config["input"])
 #TODO: handle signals for stopping, thread exits, etc.
 while workingProbes > 0:
-	result = "No result"
-	try:
-		result = ecs.take().get()
-	except InterruptedException, ex:
-		pprint(ex)
-		traceback.print_exc()
-	except ExecutionException, ex:
-		pprint(ex)
-		traceback.print_exc()
-	print result
-	workingProbes -= 1
+    result = "No result"
+    try:
+        result = ecs.take().get()
+    except InterruptedException, ex:
+        traceback.print_exc()
+        pprint(ex)
+    except ExecutionException, ex:
+        traceback.print_exc()
+        pprint(ex)
+    print result
+    workingProbes -= 1
 
 print "shutting threadpool down..."
 shutdown_and_await_termination(pool, 5)
