@@ -81,6 +81,98 @@ Each thread is an instance of a probe that performs:
 About the use of Tomcat’s connection pool, zxJDBC could’ve been used to attain the same objective.
 Since some code was around using it, so it stood.
 
+## CLASSPATH nightmares?
+
+### Minimum set of jars needed to run probespawner
+`CLASSPATH=jyson-1.0.2.jar:joda-time-2.7.jar`
+
+### Minimum set of jars needed to run probespawner for jdbc using "cooldbprobe" module
+`CLASSPATH=jyson-1.0.2.jar:joda-time-2.7.jar:tomcat-jdbc.jar:tomcat-juli.jar`
+
+### Minimum set of jars needed to run probespawner for jdbc using "cooldbprobe" module with mysql as a source
+`CLASSPATH=jyson-1.0.2.jar:joda-time-2.7.jar:tomcat-jdbc.jar:tomcat-juli.jar:mysql-connector-java-5.1.20-bin.jar`
+
+JSON input configuration:
+```
+...
+"probemodule": { "module": "cooldbprobe", "name" : "DatabaseProbe" },
+"url": "jdbc:mysql://localhost:3306/mysql",
+"driverClassName": "com.mysql.jdbc.Driver",
+"username": "root",
+"password": "password",
+...
+```
+
+### Minimum set of jars needed to run probespawner for jdbc using "cooldbprobe" module with OracleDB as a source
+`CLASSPATH=jyson-1.0.2.jar:joda-time-2.7.jar:tomcat-jdbc.jar:tomcat-juli.jar:ojdbc6.jar`
+
+JSON input configuration:
+```
+...
+"probemodule": { "module": "cooldbprobe", "name" : "DatabaseProbe" },
+"url": "jdbc:mysql://localhost:3306/mysql",
+"driverClassName": "com.mysql.jdbc.Driver",
+"username": "root",
+"password": "password",
+...
+```
+
+### Minimum set of jars needed to run probespawner for jdbc using "cooldbprobe" module with Microsoft SQLServer (mssql) as a source
+`CLASSPATH=jyson-1.0.2.jar:joda-time-2.7.jar:tomcat-jdbc.jar:tomcat-juli.jar:sqljdbc4.jar`
+
+JSON input configuration:
+
+```
+...
+"probemodule": { "module": "cooldbprobe", "name" : "DatabaseProbe" },
+"url": "jdbc:sqlserver://suchhost:1433;databaseName=Master",
+"driverClassName": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+"username": "suchuser",
+"password": "suchpassword",
+...
+```
+
+### Minimum set of jars needed to run probespawner for JMX using jmxprobe and JBoss EAP61
+`CLASSPATH=jyson-1.0.2.jar:joda-time-2.7.jar:tomcat-jdbc.jar:tomcat-juli.jar:jboss-client.jar`
+
+JSON input configuration:
+
+```
+...
+"url":"service:jmx:remoting-jmx://localhost:8000",
+"username": "admin",
+"password": "password",
+"alias": "hostname.project",
+"queries" : [
+ { 
+  "object_name" : "java.lang:type=Memory",
+  "attributes" : [ "NonHeapMemoryUsage", "HeapMemoryUsage" ]
+ }, {
+  "object_name" : "com.conceptwave.AVM:type=CWAVM"
+ }, {
+  "object_name" : "com.conceptwave.AVM:type=PEQueues,name=Participants Queue"
+ }, {
+  "object_name" : "java.lang:type=GarbageCollector,name=*",
+  "attributes" : [ "CollectionCount", "CollectionTime" ]
+ }
+],
+"description": "Obtains JMX metrics from JVM instance, stores on elasticsearch",
+"probemodule": { "module": "jmxprobe", "name" : "JMXProbe" },
+...
+```
+
+### Classpath needed for output module "jelh2" using elasticsearch 2.1.1
+```
+CLASSPATH=/foo/bar/opt/elasticsearch-2.1.1/lib/elasticsearch-2.1.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/lucene-core-5.3.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/guava-18.0.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/jsr166e-1.1.0.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/hppc-0.7.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/jackson-core-2.6.2.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/compress-lzf-1.0.2.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/t-digest-3.0.jar
+```
+
+JSON output configuration:
+
+```
+"class": "elasticsearch",
+"outputmodule": { "module": "jelh2", "name" : "Elasticsearch" },
+```
+
 # Probespawner package contents
 
 The package contains the following files:
@@ -324,7 +416,8 @@ That should suffice for most everything you have in mind for recipes with probes
 # Running probespawner
 
 ## Export the classpath:
-`export CLASSPATH=/home/suchuser/opt/apache-tomcat-7.0.59/lib/tomcat-jdbc.jar:/home/suchuser/opt/apache-tomcat-7.0.59/bin/tomcat-juli.jar:/home/suchuser/var/lib/java/jyson-1.0.2/lib/jyson-1.0.2.jar:/home/suchuser/opt/elasticsearch-1.5.0/lib/lucene-core-4.10.4.jar:/home/suchuser/opt/elasticsearch-1.5.0/lib/elasticsearch-1.5.0.jar:/home/suchuser/var/lib/java/mysql-connector-java-5.1.20-bin.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc4.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc.jar:/home/suchuser/opt/rabbitmq-java-client-bin-3.5.3/rabbitmq-client.jar`
+Below a sample classpath for using probespawner and a few JDBC drivers:
+`export CLASSPATH=/home/suchuser/opt/apache-tomcat-7.0.59/lib/tomcat-jdbc.jar:/home/suchuser/opt/apache-tomcat-7.0.59/bin/tomcat-juli.jar:/home/suchuser/var/lib/java/jyson-1.0.2/lib/jyson-1.0.2.jar:/home/suchuser/var/lib/java/mysql-connector-java-5.1.20-bin.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc4.jar:/home/suchuser/var/lib/java/sqljdbc_4.0/enu/sqljdbc.jar:/home/suchuser/opt/rabbitmq-java-client-bin-3.5.3/rabbitmq-client.jar`
 
 ## Run the jython code:
 `jython probespawner.py --configuration=example.json`
