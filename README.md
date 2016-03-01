@@ -163,7 +163,7 @@ JSON input configuration:
 
 ### Classpath needed for output module "jelh2" using elasticsearch 2.1.1
 ```
-CLASSPATH=/foo/bar/opt/elasticsearch-2.1.1/lib/elasticsearch-2.1.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/lucene-core-5.3.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/guava-18.0.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/jsr166e-1.1.0.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/hppc-0.7.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/jackson-core-2.6.2.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/compress-lzf-1.0.2.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/t-digest-3.0.jar
+CLASSPATH=/foo/bar/opt/elasticsearch-2.1.1/lib/elasticsearch-2.1.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/lucene-core-5.3.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/guava-18.0.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/jsr166e-1.1.0.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/hppc-0.7.1.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/jackson-core-2.6.2.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/compress-lzf-1.0.2.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/t-digest-3.0.jar:/foo/bar/opt/elasticsearch-2.1.1/lib/netty-3.10.5.Final.jar
 ```
 
 JSON output configuration:
