@@ -135,6 +135,10 @@ class Elasticsearch():
                 _id = data["_id"]
                 del data["_id"]
                 bulkRequest.add(client.prepareIndex(indexName, self.config["type"], _id).setSource(json.dumps(data)))
+            elif "_ID" in data:
+                _ID = data["_ID"]
+                del data["_ID"]
+                bulkRequest.add(client.prepareIndex(indexName, self.config["type"], _ID).setSource(json.dumps(data)))
             else:
                 bulkRequest.add(client.prepareIndex(indexName, self.config["type"]).setSource(json.dumps(data)))
             self.runtime["requestsPending"] = self.runtime["requestsPending"] + 1
