@@ -1,0 +1,14 @@
+# Logs
+logs
+*.log
+tmp
+etc
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+*.class
+*.ignore
