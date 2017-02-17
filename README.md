@@ -1,6 +1,6 @@
 # Credit where it's due
 Please read the "Dependencies" chapter below.  
-Probespawner uses a number of great software and it depends directly on a number of them. 
+Probespawner uses a number of great software and it depends directly on a number of them.
 Links are provided for every of them.
 Some packages, namely jar files, are available here for convenience but you should upgrade them should you use this project.
 
@@ -10,7 +10,7 @@ All the probespawner's source is public domain - [see LICENSE.md file](https://g
 
 Below you'll find the instructions to install and use Probespawner in a *NIX environment.  
 [Click here to check instruction on how to install and use in Windows] (https://github.com/filipealmeida/probespawner/blob/master/INSTALL.windows.md)  
-  
+
 1. Download `java` (1.7+) - https://java.com/en/download/
 2. Install `java`
 3. Download Jython - http://www.jython.org/downloads.html
@@ -120,6 +120,9 @@ JSON input configuration:
 ### Minimum set of jars needed to run probespawner for jdbc using "cooldbprobe" module with Microsoft SQLServer (mssql) as a source
 `CLASSPATH=jyson-1.0.2.jar:joda-time-2.7.jar:tomcat-jdbc.jar:tomcat-juli.jar:sqljdbc4.jar`
 
+### Sample set of jars to work with elasticsarch 5.x (proof:5.2.0)
+`CLASSPATH=compress-lzf-1.0.2.jar:elasticsearch-2.1.1.jar:guava-18.0.jar:hppc-0.7.1.jar:jackson-core-2.6.2.jar:jboss-client.jar:joda-time-2.7.jar:jsr166e-1.1.0.jar:jyson-1.0.2.jar:lucene-core-5.3.1.jar:mysql-connector-java-5.1.20-bin.jar:netty-3.10.5.Final.jar:ojdbc6.jar:rabbitmq-client.jar:sqljdbc4.jar:t-digest-3.0.jar:tomcat-jdbc.jar:tomcat-juli.jar:wlclient.jar:wljmxclient.jar`
+
 JSON input configuration:
 
 ```
@@ -144,7 +147,7 @@ JSON input configuration:
 "password": "password",
 "alias": "hostname.project",
 "queries" : [
- { 
+ {
   "object_name" : "java.lang:type=Memory",
   "attributes" : [ "NonHeapMemoryUsage", "HeapMemoryUsage" ]
  }, {
@@ -179,7 +182,7 @@ The package contains the following files:
 
 1. **dummyprobe.py** - Do not be mistaken judging by the name that this is a dummy probe. It’s been a poor choice of name but this is immature code so it’s staying like that. This is the class from which the other inherit and it’s the real skeleton for probes.
 2. **cooldbprobe.py** - Same as databaseprobe.py but uses JodaTime for time parameters, timestamp is in milliseconds, datetime strings are ISO8601 format looking like “2015-11-21T15:14:15.912+05:00”.
-3. **jelh.py** - Jython’s Elasticsearch Little Helper, the module responsible for the bulk requests to elasticsearch. 
+3. **jelh.py** - Jython’s Elasticsearch Little Helper, the module responsible for the bulk requests to elasticsearch.
 4. **jmxprobe.py** - This probe executes JMX requests in a JVM and reports it’s results to the outputs configured in the JSON setup. NOTE: It discards bad objects/attributes in case of failure but keeps working if it happens. Adjust to your needs (find out the try/except in the “tick” method)
 5. **probespawner.ini** - Logging configuration.
 6. **probespawner.py** - It’s the croupier, it reads and delivers the configuration for the probes. Lastly, it instantiates all of them and wait’s for them to finish. It’s a simple threadpool but it would be great if it dealt with interrupts and failures from it’s workers.
@@ -193,9 +196,9 @@ The package contains the following files:
 14. **linuxtopprobe.py** - Executes top command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion
 15. **netstats.py** - Executes “netstat -s” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
 16. **netstatntc.py** - Executes “netstat -ntce” command on linux boxes every cycle, parses and reports it’s output in an elasticsearch friendly fashion.
-17. **rmqlh.py** - Jython’s RabbitMQ Little Helper, the module responsible for pushing to RabbitMQ queues. 
-18. **opentsdblh.py** - Jython’s OpenTSDB (time-series database) Little Helper, the module responsible for pushing to such backend. 
-19. **jelh2.py** - Jython’s Elasticsearch 2.0 Little Helper, the module responsible for the bulk requests to elasticsearch versions 2+. 
+17. **rmqlh.py** - Jython’s RabbitMQ Little Helper, the module responsible for pushing to RabbitMQ queues.
+18. **opentsdblh.py** - Jython’s OpenTSDB (time-series database) Little Helper, the module responsible for pushing to such backend.
+19. **jelh2.py** - Jython’s Elasticsearch 2.0 Little Helper, the module responsible for the bulk requests to elasticsearch versions 2+.
 
 # Configuring
 **Instead of reading this section** you can refer to the file [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json) file in the repo/zip.
@@ -208,7 +211,7 @@ The list of possible fields for inputs and outputs is shown below:
 
 ### Common fields for inputs
 Field | Description
---- | --- 
+--- | ---
 description | Small description of your input, it'll be used to name it's JAVA thread
 probemodule | Dictionary with “module” and “name” keys specifying the module and name to import as the probe for one input
 module | The jython module that contains the probe, e.g.: databaseprobe
@@ -265,7 +268,7 @@ qenddt | Same as qend in ISO8601
 cooldbprobe packs a few extras and has some differences from the above:
 
 Field | Description
---- | --- 
+--- | ---
 start | Unix timestamp in milliseconds in your script environment timezone at your cycle start (see python’s time.time() function), e.g.: 1427976119921, the getTimeMillis() from JodaTime
 laststart | Unix timestamp in milliseconds of your previous cycle start
 end | Unix timestamp in milliseconds of the end of last cycle
@@ -285,21 +288,21 @@ qelapsed | Elapsed time in milliseconds from start of execution until resultset 
 
 ### JMX input specific parameters
 Field | Description
---- | --- 
+--- | ---
 host | JMX host
 port | JMX port
 username | Username for JMX connection
 password | Password for JMX connection
 attributes | List of metrics to obtain from JXM, e.g.: ["java.lang:type=Memory/HeapMemoryUsage", "java.lang:type=Runtime/Uptime"]
 operations | List of operations to execute via JMX, e.g: [{ "name": "java.lang:type=Threading/dumpAllThreads", "params": [ true, true ], "signatures": [ "boolean", "boolean" ] },  { "name": "java.lang:type=Threading/findDeadlockedThreads" } ]
-arrayElementsToRecord | Set this to true to expand an array if such is returned to your request 
+arrayElementsToRecord | Set this to true to expand an array if such is returned to your request
 "queries" | array of queries in logstash fashion, [see logstash configuration example](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-jmx.html)
 "alias" | prefix for metric names
 "compositeDataToManyRecords" | true or false, splits return object in many; for otsdb output preferred value is true
 
 ### ExecProbe specific
 Field | Description
---- | --- 
+--- | ---
 command | Set this to the command you want to execute every cycle
 regexp | Named groups regex, python style, to parse and name your fields
 metrics | List of group names which are metrics. A document/JSON entry per metric will be generated. Every metric value will be converted to a float.
@@ -307,30 +310,30 @@ terms | Same as metrics but values won't be converted to floats
 decimalMark | Decimal mark separator for number parsing
 ### Top specific
 Field | Description
---- | --- 
+--- | ---
 command | Set this to change the “top -Hbi -n20 -d5 -w512” command that gets executed every cycle.
 
 ### NetstatS specific
 Field | Description
---- | --- 
+--- | ---
 command | Set this to change the “netstat -s” command that gets executed every cycle.
 
 ### NetstatNTC specific
 Field | Description
---- | --- 
+--- | ---
 command | Set this to change the “netstat -ntc” command that gets executed every cycle.
 
 ## Outputs
 ### Common fields
 Field | Description
---- | --- 
+--- | ---
 class | The class of your output, one of “elasticsearch”, “rabbitmq”, “file” or “stdout”
 outputmodule | Alike the input, your module and name to import e.g.: `{ "module": "jelh", "name" : "Elasticsearch" }` or `{ "module": "rmqlh", "name" : "RabbitMQ" }`
 codec | Transformations to the data, e.g.: `json_lines` (see rabbitMQ example)
 messageTemplate | A dictionary to append to be sent/added in the output message, can use $cycle, $config and $data variables
 ### Elasticsearch 1.x, 2.x (jelh.py or jelh2.py)
 Field | Description
---- | --- 
+--- | ---
 cluster | A string with the clustername, defaults to “elasticsearch”
 outputmodule | `{ "module": "jelh", "name" : "Elasticsearch" }`
 hosts | List of hosts:ports, e.g.: [“10.0.0.1:9300”, “10.0.0.2:9300”] If host and port are also specified, it’ll be added to this list
@@ -353,7 +356,7 @@ concurrentRequests | *ignored for the time being*
 
 ### RabbitMQ (rmqlh.py)
 Field | Description
---- | --- 
+--- | ---
 outputmodule | `{ "module": "rmqlh", "name" : "RabbitMQ" }`
 queue_name | queue to write to
 addresses | list of addresses (for failover) e.g.: `["suchhost:5672", "suchhost:5672"]`
@@ -376,7 +379,7 @@ exclusive | true or false (defaults to false)
 
 ### OpenTSDB (opentsdblh.py)
 Field | Description
---- | --- 
+--- | ---
 outputmodule | `{ "module": "opentsdblh", "name" : "OpenTSDB" }`
 queue_name | queue to write to
 addresses | list of addresses (for failover) e.g.: `["suchhost:5672", "suchhost:5672"]`
@@ -391,12 +394,12 @@ tags | array of extra tags for metrics e.g.: [ "sometag=somevalue", "othertag=ot
 
 ### STDOUT
 Field | Description
---- | --- 
+--- | ---
 codec | “json_lines”, no other available.
 
 ### File
 Field | Description
---- | --- 
+--- | ---
 codec | “json_lines”, no other available.
 filename | The filename to write the information to in the format established by the codec.
 
@@ -406,7 +409,7 @@ Hence the “input” field.
 This field indicates probespawner which inputs are to be processed by the probe threads.  
 
 Field | Description
---- | --- 
+--- | ---
 input | List of inputs to be launched by probespawner, e.g.: [“JMXInput”, “JDBCInput”]
 
 Refer to the file [example.json](https://github.com/filipealmeida/probespawner/blob/master/example.json).  
@@ -439,11 +442,9 @@ This is the minimum probe, the only thing it does is writing the `{ ‘test’: 
 For that to be accomplished, your class must override the “tick” method which is called at every cycle, meaning every “interval” seconds you defined in your input.
 
 ## Get your configuration and initialize your probe: override the “initialize” method
-The method “initialize” is another popular overridden one, called before the probe starts cycling. 
+The method “initialize” is another popular overridden one, called before the probe starts cycling.
 It’s usually in this method you get the configuration keys from the JSON file, set up and initialize your probe.
 
 ## Getting a property:
 `username = self.getInputProperty("username")`  
 This grabs the “username” content of your defined input in the JSON file and returns it’s value (or None).
-
-
