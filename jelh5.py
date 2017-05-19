@@ -8,7 +8,7 @@ import org.elasticsearch.client.transport.TransportClient as TransportClient
 import org.elasticsearch.transport.client.PreBuiltTransportClient as PreBuiltTransportClient
 import org.elasticsearch.common.settings.Settings as Settings
 import org.elasticsearch.client.transport.NoNodeAvailableException as NoNodeAvailableException
-import org.elasticsearch.indices.IndexAlreadyExistsException as IndexAlreadyExistsException
+#import org.elasticsearch.indices.IndexAlreadyExistsException as IndexAlreadyExistsException
 import traceback
 import time
 import datetime
@@ -40,7 +40,7 @@ class Elasticsearch():
         else:
             port = "9300"
         if "bulkActions" not in self.config:
-            self.config["bulkActions"] = 1000 
+            self.config["bulkActions"] = 1000
         if "bulkSize" not in self.config:
             self.config["bulkSize"] = 107374182400
         if "flushInterval" not in self.config:
@@ -86,7 +86,7 @@ class Elasticsearch():
                 address = InetSocketTransportAddress(InetAddress.getByName(host), int(port))
                 logger.info("Setting Elasticsearch host: %s = %s", host, port)
                 self.runtime["client"].addTransportAddress(address)
-        
+
         self.readyBulk()
         self.runtime["indices"] = {}
 
@@ -96,7 +96,7 @@ class Elasticsearch():
                 logger.debug("Index \"%s\" already exists", indexName)
                 self.runtime["indices"][indexName] = time.time()
                 return False
-            else:                
+            else:
                 logger.info("Creating index %s", indexName)
                 if "index_settings" in self.config:
                     self.config["indexSettings"] = self.config["index_settings"]
